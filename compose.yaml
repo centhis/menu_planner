@@ -1,0 +1,39 @@
+services:
+  hermes:
+    image: nousresearch/hermes-agent:v2026.6.19
+    container_name: hermes
+    restart: unless-stopped
+    command: /opt/menu-planner/hermes-codex-start.sh gateway run
+    ports:
+      - "8642:8642"   # gateway API
+      - "${HERMES_DASHBOARD_PORT:-9119}:${HERMES_DASHBOARD_PORT:-9119}" # dashboard UI
+    volumes:
+      - hermes-data:/opt/data
+      - ./scripts/hermes-codex-start.sh:/opt/menu-planner/hermes-codex-start.sh:ro
+      - ./config/hermes-managed-config.yaml:/etc/hermes/config.yaml:ro
+      - ./plugins/menu-planner-probe:/opt/data/plugins/menu-planner-probe:ro
+    environment:
+      - HERMES_USE_CODEX_AUTH=${HERMES_USE_CODEX_AUTH:-0}
+      - HERMES_DASHBOARD=${HERMES_DASHBOARD:-1}
+      - HERMES_DASHBOARD_HOST=${HERMES_DASHBOARD_HOST:-0.0.0.0}
+      - HERMES_DASHBOARD_PORT=${HERMES_DASHBOARD_PORT:-9119}
+      - HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${HERMES_DASHBOARD_BASIC_AUTH_USERNAME:?Set HERMES_DASHBOARD_BASIC_AUTH_USERNAME in .env for the exposed dashboard}
+      - HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${HERMES_DASHBOARD_BASIC_AUTH_PASSWORD:?Set HERMES_DASHBOARD_BASIC_AUTH_PASSWORD in .env for the exposed dashboard}
+      - HERMES_DASHBOARD_BASIC_AUTH_SECRET=${HERMES_DASHBOARD_BASIC_AUTH_SECRET:?Set HERMES_DASHBOARD_BASIC_AUTH_SECRET in .env; Hermes requires at least 16 bytes}
+      - HERMES_HOME=/opt/data
+      - HERMES_WRITE_SAFE_ROOT=/opt/data
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env for Telegram Gateway checks}
+      - TELEGRAM_ALLOWED_USERS=${TELEGRAM_ALLOWED_USERS:?Set TELEGRAM_ALLOWED_USERS in .env to restrict Telegram Gateway access}
+      - TELEGRAM_HOME_CHANNEL=${TELEGRAM_HOME_CHANNEL:-}
+      - TELEGRAM_PROXY=${TELEGRAM_PROXY:-}
+      # Uncomment to forward specific env vars instead of using .env file:
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+
+volumes:
+  hermes-data:

@@ -1,0 +1,10 @@
+name: menu-planner-probe
+version: 0.1.0
+description: "Stage 0 capability probe plugin for Menu Planner. Registers one inert JSON echo tool."
+author: Menu Planner
+kind: standalone
+provides_tools:
+  - menu_planner_probe_echo
+provides_hooks:
+  - pre_tool_call
+  - post_tool_call

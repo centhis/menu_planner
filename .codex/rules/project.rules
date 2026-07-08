@@ -1,0 +1,117 @@
+# Hermes image must never be built by this project.
+
+prefix_rule(
+    pattern = ["docker", "build"],
+    decision = "forbidden",
+    justification = "Do not build a custom Hermes image. Use the ready image from compose.",
+    match = [
+        "docker build .",
+        "docker build -t menu-hermes .",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "build"],
+    decision = "forbidden",
+    justification = "This project uses no Dockerfile for Hermes. Use docker compose pull/up.",
+    match = [
+        "docker compose build",
+        "docker compose build hermes",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "cp"],
+    decision = "forbidden",
+    justification = "Mount files through Docker Compose instead of copying into containers.",
+    match = [
+        "docker cp plugin.py hermes:/app/plugin.py",
+    ],
+)
+
+prefix_rule(
+    pattern = ["docker", "commit"],
+    decision = "forbidden",
+    justification = "Never create images from manually changed containers.",
+    match = [
+        "docker commit hermes custom-hermes",
+    ],
+)
+
+# Container lifecycle changes require explicit user approval.
+
+prefix_rule(
+    pattern = ["docker", "compose", "pull"],
+    decision = "prompt",
+    justification = "Pulling may change the local image version.",
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "up"],
+    decision = "prompt",
+    justification = "Starting or recreating services changes runtime state.",
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "down"],
+    decision = "prompt",
+    justification = "Stopping services may interrupt the active Hermes runtime.",
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "restart"],
+    decision = "prompt",
+    justification = "Restarting Hermes interrupts active sessions.",
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "exec"],
+    decision = "prompt",
+    justification = "Exec is allowed only for diagnostic commands.",
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", "run"],
+    decision = "prompt",
+    justification = "One-off containers may create runtime state.",
+)
+
+# Destructive Git actions.
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Do not discard uncommitted changes. Use git diff and ask the user.",
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "Do not delete untracked project files.",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Do not rewrite remote history.",
+)
+
+# Machine administration always requires approval.
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "prompt",
+    justification = "System-level changes require explicit user approval.",
+)
+
+prefix_rule(
+    pattern = ["apt"],
+    decision = "prompt",
+    justification = "Package installation changes the VM.",
+)
+
+prefix_rule(
+    pattern = ["apt-get"],
+    decision = "prompt",
+    justification = "Package installation changes the VM.",
+)
