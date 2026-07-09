@@ -1,3 +1,8 @@
+# Future app and migration services should merge this environment block instead
+# of asking operators to duplicate DB connection settings in .env.
+x-application-db-environment: &application-db-environment
+  DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER in .env for the application database}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env for the application database}@postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB in .env for the application database}
+
 services:
   hermes:
     image: nousresearch/hermes-agent:v2026.6.19
@@ -11,7 +16,6 @@ services:
       - hermes-data:/opt/data
       - ./scripts/hermes-codex-start.sh:/opt/menu-planner/hermes-codex-start.sh:ro
       - ./config/hermes-managed-config.yaml:/etc/hermes/config.yaml:ro
-      - ./plugins/menu-planner-probe:/opt/data/plugins/menu-planner-probe:ro
     environment:
       - HERMES_USE_CODEX_AUTH=${HERMES_USE_CODEX_AUTH:-0}
       - HERMES_DASHBOARD=${HERMES_DASHBOARD:-1}
@@ -35,5 +39,55 @@ services:
           memory: 4G
           cpus: "2.0"
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: menu-planner-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:?Set POSTGRES_DB in .env for the application database}
+      - POSTGRES_USER=${POSTGRES_USER:?Set POSTGRES_USER in .env for the application database}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env for the application database}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: menu-planner-app:local
+    container_name: menu-planner-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      <<: *application-db-environment
+      APP_SERVICE_NAME: menu-planner-app
+      APP_ENV: development
+      HERMES_BASE_URL: http://hermes:${HERMES_DASHBOARD_PORT:-9119}
+      EXPECTED_MIGRATION_REVISION: "20260709_0001"
+    volumes:
+      - ./.dockerignore:/app/.dockerignore:ro
+      - ./Dockerfile.app:/app/Dockerfile.app:ro
+      - ./Makefile:/app/Makefile:ro
+      - ./alembic.ini:/app/alembic.ini:ro
+      - ./config/hermes-managed-config.yaml:/app/config/hermes-managed-config.yaml:ro
+      - ./compose.yaml:/app/compose.yaml:ro
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./docs/runbooks:/app/docs/runbooks:ro
+      - ./migrations:/app/migrations:ro
+      - ./scripts:/app/scripts:ro
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
 volumes:
   hermes-data:
+  postgres-data:

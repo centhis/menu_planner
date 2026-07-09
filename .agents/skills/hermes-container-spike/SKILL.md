@@ -8,8 +8,8 @@ description: Use when inspecting, configuring, mounting files into, or testing t
 ## Hard constraints
 
 - Use the existing ready-made Hermes image.
-- Do not create a Dockerfile.
-- Do not run docker build or docker compose build.
+- Do not create a Dockerfile for Hermes.
+- Do not run docker build or docker compose build for Hermes.
 - Do not use docker cp.
 - Do not use docker commit.
 - Do not install packages inside the container.

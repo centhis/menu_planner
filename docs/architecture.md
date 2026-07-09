@@ -109,9 +109,27 @@ Domain Core
 - hooks;
 - commands;
 - skills;
-- адаптер между Hermes и Domain Core.
+- адаптер между Hermes и Application HTTP API.
 
-### 3.5. Domain Core
+Не владеет PostgreSQL schema, migrations, repositories или transaction
+boundary.
+
+### 3.5. Application Service
+
+Владеет:
+
+- HTTP API для Menu Planner use cases;
+- application workflows;
+- PostgreSQL schema;
+- migrations;
+- repositories;
+- transaction boundary;
+- commit orchestration.
+
+Application Service является единственным компонентом, который применяет
+миграции и пишет подтверждённое состояние в Application DB.
+
+### 3.6. Domain Core
 
 Источник истины для:
 
@@ -123,6 +141,8 @@ Domain Core
 - commit;
 - версионирования;
 - идемпотентности.
+
+Domain Core не импортирует Hermes или Telegram.
 
 ## 4. Контроль свободного текста
 

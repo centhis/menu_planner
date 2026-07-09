@@ -25,8 +25,8 @@ Hermes запускается только из готового Docker image ч
 Запрещено:
 
 - создавать Dockerfile для Hermes;
-- использовать docker build;
-- использовать docker compose build;
+- использовать docker build для Hermes;
+- использовать docker compose build hermes;
 - создавать кастомный Hermes image;
 - использовать docker commit;
 - использовать docker cp для установки кода;
@@ -37,6 +37,8 @@ Hermes запускается только из готового Docker image ч
 Разрешено:
 
 - редактировать файлы на host VM;
+- создавать и собирать application image/container;
+- использовать docker compose build app;
 - подключать файлы через bind mounts;
 - использовать read-only bind mounts для кода и конфигурации;
 - использовать named volumes для изменяемого runtime state;
@@ -68,6 +70,13 @@ Menu Planner Domain Core:
 - idempotency.
 
 Domain Core не импортирует Hermes или Telegram.
+
+Application service владеет PostgreSQL schema, migrations, repositories и
+transaction boundary. Hermes не применяет миграции, не пишет напрямую в
+Application DB и не знает физическую схему БД.
+
+Hermes интегрируется с Application service через HTTP API. Hermes plugin/tools
+являются adapter layer и не импортируют Domain Core напрямую.
 
 Модель не изменяет подтверждённое состояние напрямую.
 

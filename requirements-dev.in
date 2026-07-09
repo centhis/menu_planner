@@ -1,0 +1,4 @@
+-r requirements.in
+mypy
+pytest
+ruff

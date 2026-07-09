@@ -5,4 +5,3 @@ model:
 plugins:
   enabled:
     - dashboard_auth/basic
-    - menu-planner-probe

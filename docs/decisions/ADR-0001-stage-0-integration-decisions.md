@@ -16,18 +16,18 @@ without inventing untested Hermes APIs or weakening the Domain Core boundary.
 
 ## Decisions
 
-### 1. Hermes to Domain Core integration
+### 1. Hermes to Application integration
 
-Use a hybrid approach:
+Use an HTTP API boundary between Hermes and the Menu Planner application:
 
-- start with an in-process Menu Planner Plugin adapter that calls a local
-  Domain Core module;
-- keep an explicit adapter boundary so the Domain Core can later move behind a
-  separate application service/API if needed;
+- Hermes plugin/tools act as an adapter to the application HTTP API;
+- the application service owns use cases, validation, workflows, persistence,
+  and commits;
 - keep Domain Core independent of Hermes and Telegram imports.
 
-This preserves early development speed while avoiding a hard dependency on the
-Hermes process boundary.
+This keeps Hermes as dialog/runtime infrastructure and keeps application
+architecture clean. The cost is one explicit service boundary, which is
+acceptable for the project.
 
 ### 2. Model provider and local model scope
 
@@ -87,8 +87,7 @@ This applies to:
 - production Menu Planner Plugin source;
 - project Hermes skills, if used;
 - managed Hermes configuration;
-- application/domain source mounted into Hermes, if the hybrid in-process
-  adapter requires it.
+- adapter source mounted into Hermes, if a Menu Planner plugin is used.
 
 Mutable Hermes runtime state remains in named volumes or another explicit
 runtime storage mechanism, not in project source mounts.
@@ -98,16 +97,28 @@ runtime storage mechanism, not in project source mounts.
 Use PostgreSQL / an application database for Menu Planner application state
 from the walking skeleton onward.
 
+The application service owns PostgreSQL schema, migrations, repositories, and
+the transaction boundary. Hermes must not apply migrations, write directly to
+the application database, or rely on physical table layout.
+
 Hermes runtime state remains separate from Menu Planner confirmed business
 state. Confirmed domain data must not exist only in Hermes memory, sessions,
 or other Hermes runtime files.
+
+### 8. Container build boundary
+
+Hermes must run only from the ready-made Docker image. Building or mutating a
+Hermes image remains forbidden.
+
+The application image is project-owned. `docker compose build app` is allowed
+and expected when application dependencies or image contents change.
 
 ## Consequences
 
 - M1 should include PostgreSQL/application DB setup instead of a long-lived
   file-only domain store.
 - The production plugin should be a thin adapter from Hermes tools/hooks to
-  Domain Core contracts.
+  the application HTTP API.
 - The Telegram platform toolset must be restricted before any real user
   workflow is exposed.
 - A follow-up confirmation spike should prove the exact `sc:*` callback
@@ -121,5 +132,3 @@ or other Hermes runtime files.
 - Exact production cloud provider and model IDs.
 - Exact production-grade dashboard auth provider.
 - Exact PostgreSQL schema, migration tooling, and application language/runtime.
-- Whether the hybrid in-process adapter will later be split into a separate
-  service.

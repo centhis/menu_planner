@@ -1,24 +1,27 @@
-# Menu Planner for Hermes 
+# Menu Planner for Hermes
 
-Персональный планировщик меню на базе Hermes Agent. 
+Персональный планировщик меню на базе Hermes Agent.
 
-## Runtime model 
+## Runtime Model
 
-Hermes запускается из готового Docker-образа через Docker Compose. 
+Hermes запускается из готового Docker image через Docker Compose.
 
-Проект не использует собственный Dockerfile для Hermes. 
+Проект не использует собственный Dockerfile для Hermes и не собирает Hermes
+image.
 
-Прикладные компоненты подключаются через bind mounts: 
+Application service является отдельным project-owned container. Его image
+можно и нужно собирать, потому что зависимости устанавливаются внутри app
+container.
 
-- configuration; 
-- Menu Planner Plugin; 
-- Hermes skills; 
-- application source code. 
+Интеграция Hermes с Menu Planner идёт через Application HTTP API.
 
-Изменяемое состояние хранится в named volumes или внешней базе данных. 
+Application service владеет PostgreSQL schema, migrations, repositories и
+transaction boundary.
 
-Ручные изменения внутри работающего контейнера запрещены.
+Изменяемое состояние хранится в named volumes или PostgreSQL. Ручные изменения
+внутри работающих контейнеров запрещены.
 
-## Current stage 
+## Current Stage
 
-Stage 0: environment setup and Hermes capability spike.
+Stage 1 / M1 walking skeleton: application container, PostgreSQL, migrations,
+health/readiness, tests, lint/typecheck, and smoke checks.

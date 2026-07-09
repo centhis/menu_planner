@@ -1,0 +1,1 @@
+"""Menu Planner application package."""
