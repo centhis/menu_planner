@@ -71,7 +71,7 @@ services:
       APP_SERVICE_NAME: menu-planner-app
       APP_ENV: development
       HERMES_BASE_URL: http://hermes:${HERMES_DASHBOARD_PORT:-9119}
-      EXPECTED_MIGRATION_REVISION: "20260709_0001"
+      EXPECTED_MIGRATION_REVISION: "20260710_0002"
     volumes:
       - ./.dockerignore:/app/.dockerignore:ro
       - ./Dockerfile.app:/app/Dockerfile.app:ro

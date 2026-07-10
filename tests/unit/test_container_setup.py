@@ -46,7 +46,7 @@ class ContainerSetupTests(unittest.TestCase):
             "HERMES_BASE_URL: http://hermes:${HERMES_DASHBOARD_PORT:-9119}",
             compose,
         )
-        self.assertIn('EXPECTED_MIGRATION_REVISION: "20260709_0001"', compose)
+        self.assertIn('EXPECTED_MIGRATION_REVISION: "20260710_0002"', compose)
         self.assertNotIn("plugins/menu-planner-probe", compose)
 
         hermes_block = compose.split("  hermes:", 1)[1].split("  postgres:", 1)[0]

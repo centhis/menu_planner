@@ -36,7 +36,7 @@ class ConfigTests(unittest.TestCase):
                 "APP_ENV": "test",
                 "DATABASE_URL": "postgresql://user:secret@postgres:5432/menu",
                 "HERMES_BASE_URL": "http://hermes:8642",
-                "EXPECTED_MIGRATION_REVISION": "20260709_0001",
+                "EXPECTED_MIGRATION_REVISION": "20260710_0002",
             },
             clear=True,
         ):
@@ -49,7 +49,7 @@ class ConfigTests(unittest.TestCase):
                 "environment": "test",
                 "database_url": "postgresql://<redacted>@postgres:5432/menu",
                 "hermes_base_url": "http://hermes:8642",
-                "expected_migration_revision": "20260709_0001",
+                "expected_migration_revision": "20260710_0002",
             },
         )
 

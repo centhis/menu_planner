@@ -8,7 +8,7 @@ from os import environ
 DEFAULT_SERVICE_NAME = "menu-planner-app"
 DEFAULT_ENVIRONMENT = "development"
 DEFAULT_HERMES_BASE_URL = "http://hermes:8642"
-DEFAULT_EXPECTED_MIGRATION_REVISION = "20260709_0001"
+DEFAULT_EXPECTED_MIGRATION_REVISION = "20260710_0002"
 
 
 @dataclass(frozen=True)
