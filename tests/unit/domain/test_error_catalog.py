@@ -162,6 +162,35 @@ class ErrorCatalogTests(unittest.TestCase):
             ERROR_CATALOG[ErrorCode.INVALID_SCHEMA_VERSION].developer_message,
         )
 
+    def test_m4_profile_validation_errors_are_catalog_backed(self) -> None:
+        payload = {
+            "schema_version": "m2.v1",
+            "user_id": "user_001",
+            "draft_id": "profile_draft_001",
+            "status": "created",
+            "fields": {
+                "user_facts": {
+                    "people_count": 0,
+                    "locale": "en-US",
+                    "timezone": "UTC",
+                    "available_equipment": ["stovetop"],
+                    "default_max_active_time_minutes": 30,
+                },
+                "strict_restrictions": [],
+                "soft_preferences": [],
+            },
+        }
+
+        result = validate_contract("profile_draft", payload)
+
+        self.assertFalse(result.is_valid)
+        self.assertEqual(result.errors[0].code, ErrorCode.INVALID_RANGE)
+        self.assertIn(result.errors[0].code, ERROR_CATALOG)
+        self.assertEqual(
+            result.errors[0].path,
+            ("fields.user_facts.people_count",),
+        )
+
     def test_error_json_uses_string_code_for_adapters(self) -> None:
         payload = missing_required_field("schema_version").to_json()
 

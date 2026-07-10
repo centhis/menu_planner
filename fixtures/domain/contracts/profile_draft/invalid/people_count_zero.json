@@ -5,23 +5,13 @@
   "status": "created",
   "fields": {
     "user_facts": {
-      "people_count": 1,
+      "people_count": 0,
       "locale": "en-US",
       "timezone": "UTC",
       "available_equipment": ["stovetop"],
       "default_max_active_time_minutes": 30
     },
-    "strict_restrictions": [
-      {
-        "kind": "ingredient_exclusion",
-        "value": "peanut"
-      }
-    ],
-    "soft_preferences": [
-      {
-        "direction": "prefer",
-        "value": "vegetables"
-      }
-    ]
+    "strict_restrictions": [],
+    "soft_preferences": []
   }
 }

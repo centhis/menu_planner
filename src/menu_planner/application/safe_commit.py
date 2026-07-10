@@ -512,14 +512,8 @@ class SafeCommitOrchestrator:
             )
 
             try:
+                unit_of_work.audit_events.add(audit_event)
                 unit_of_work.versioned_records.add(committed)
-            except Exception:  # noqa: BLE001 - adapters normalize DB conflicts.
-                unit_of_work.rollback()
-                return SafeCommitResult(
-                    error=transaction_conflict(command.operation, command.entity_id)
-                )
-
-            try:
                 confirmation_lifecycle.mark_committed(
                     command.confirmation_id,
                     command.now,
@@ -529,7 +523,6 @@ class SafeCommitOrchestrator:
                     "completed",
                     outcome_ref=committed.record_id,
                 )
-                unit_of_work.audit_events.add(audit_event)
             except Exception:  # noqa: BLE001 - rollback keeps commit atomic.
                 unit_of_work.rollback()
                 return SafeCommitResult(

@@ -13,7 +13,27 @@ from menu_planner.domain.errors import ErrorCode
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 FIXTURES_ROOT = ROOT / "fixtures" / "domain" / "contracts"
 
-EXPECTED_INVALID_ERROR_CODE = ErrorCode.MISSING_REQUIRED_FIELD
+EXPECTED_INVALID_ERROR_CODES = {
+    "missing_schema_version.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "missing_profile_fields.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "strict_restriction_missing_value.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "equipment_item_not_string.json": ErrorCode.INVALID_FIELD_TYPE,
+    "people_count_zero.json": ErrorCode.INVALID_RANGE,
+    "version_zero.json": ErrorCode.INVALID_RANGE,
+}
+
+EXPECTED_INVALID_ERROR_PATHS = {
+    "missing_schema_version.json": ("schema_version",),
+    "missing_profile_fields.json": ("fields.user_facts",),
+    "strict_restriction_missing_value.json": (
+        "fields.strict_restrictions.0.value",
+    ),
+    "equipment_item_not_string.json": (
+        "fields.user_facts.available_equipment.1",
+    ),
+    "people_count_zero.json": ("fields.user_facts.people_count",),
+    "version_zero.json": ("version",),
+}
 
 
 def _load_json(path: pathlib.Path) -> object:
@@ -68,12 +88,14 @@ class DomainContractFixtureTests(unittest.TestCase):
 
                     self.assertFalse(result.is_valid)
                     self.assertEqual(result.value, None)
-                    self.assertEqual(result.errors[0].code, EXPECTED_INVALID_ERROR_CODE)
+                    expected_code = EXPECTED_INVALID_ERROR_CODES[fixture_path.name]
+                    expected_path = EXPECTED_INVALID_ERROR_PATHS[fixture_path.name]
+                    self.assertEqual(result.errors[0].code, expected_code)
                     self.assertEqual(
                         result.errors[0].to_json()["code"],
-                        "contract.missing_required_field",
+                        expected_code.value,
                     )
-                    self.assertEqual(result.errors[0].path, ("schema_version",))
+                    self.assertEqual(result.errors[0].path, expected_path)
 
 
 if __name__ == "__main__":

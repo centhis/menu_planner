@@ -177,3 +177,40 @@ Until resolved:
 - Do not assume arbitrary plugin-owned Telegram callback payloads are available.
 - Keep domain confirmation IDs application-owned and independent of Hermes
   internal session or turn IDs.
+
+## OQ-004: Final product profile schema
+
+Status: open; M4 uses only a technical vertical-slice assumption
+Date: 2026-07-10
+
+Question: Which fields, taxonomies, validation rules, and onboarding UX should
+define the real user profile after the M4 deterministic architecture slice?
+
+Known facts:
+
+- Concept and domain documents intentionally mark profile fields as requiring a
+  human decision.
+- M4 needs a small structured profile payload to test validation, preview,
+  confirmation, safe commit, versioning, audit, and restart read-back.
+- ADR-0006 accepts an M4-only technical profile shape with `user_facts`,
+  `strict_restrictions`, and `soft_preferences`.
+- ADR-0006 explicitly does not select final product defaults or taxonomies.
+
+Needed decisions before relying on profile data for menu workflows:
+
+- Required profile fields for the actual MVP.
+- Meaning of people count: household size, servings, guests, or meal
+  participants.
+- Supported country, city, locale, currency, and timezone behavior.
+- Taxonomies for strict restrictions, allergies, diets, disliked ingredients,
+  cuisines, equipment, budgets, calories, macros, and stores.
+- Whether and how to model temporary wishes, confidence, source attribution,
+  clarification history, expiration, and unverified dialogue claims.
+- User-facing confirmation TTL and confirmation copy for profile changes.
+
+Until resolved:
+
+- Treat ADR-0006 fields as M4 technical assumptions only.
+- Do not infer user-facing product semantics from M4 fixture values.
+- Do not use M4 profile shape as the final menu-generation input contract
+  without a follow-up decision.

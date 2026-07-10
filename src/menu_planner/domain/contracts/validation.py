@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, TypeGuard, cast
@@ -37,6 +38,7 @@ from menu_planner.domain.errors import (
     invalid_contract_shape,
     invalid_enum_value,
     invalid_field_type,
+    invalid_range,
     invalid_schema_version,
     missing_required_field,
 )
@@ -65,6 +67,7 @@ class ContractValidator:
     contract_name: str
     model: type[object]
     fields: tuple[FieldRule, ...]
+    custom_validate: Callable[[dict[str, object]], DomainError | None] | None = None
 
     def validate(self, data: object) -> ContractValidationResult:
         if not _is_json_object(data):
@@ -114,6 +117,11 @@ class ContractValidator:
             else:
                 values[field.name] = raw_value
 
+        if self.custom_validate is not None:
+            custom_error = self.custom_validate(values)
+            if custom_error is not None:
+                return _failure(self.contract_name, custom_error)
+
         model_factory = cast(Any, self.model)
         return ContractValidationResult(
             contract_name=self.contract_name,
@@ -147,7 +155,7 @@ def _is_string_array(value: object) -> bool:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
-def _is_object_array(value: object) -> bool:
+def _is_object_array(value: object) -> TypeGuard[list[JsonObject]]:
     return isinstance(value, list) and all(_is_json_object(item) for item in value)
 
 
@@ -167,6 +175,133 @@ def _matches_expected_type(value: object, expected: str) -> bool:
     if expected == "object_array":
         return _is_object_array(value)
     raise ValueError(f"Unsupported field type rule: {expected}")
+
+
+def _validate_positive_integer_field(
+    value: object,
+    field_path: str,
+) -> DomainError | None:
+    if not isinstance(value, int) or isinstance(value, bool):
+        return invalid_field_type(field_path, "integer")
+    if value < 1:
+        return invalid_range(field_path, 1, 2147483647, value)
+    return None
+
+
+def _validate_non_empty_string_field(
+    value: object,
+    field_path: str,
+) -> DomainError | None:
+    if not isinstance(value, str):
+        return invalid_field_type(field_path, "string")
+    if value == "":
+        return invalid_range(field_path, 1, 2147483647, 0)
+    return None
+
+
+def _validate_non_empty_string_array(
+    value: object,
+    field_path: str,
+) -> DomainError | None:
+    if not isinstance(value, list):
+        return invalid_field_type(field_path, "string_array")
+    for index, item in enumerate(value):
+        item_path = f"{field_path}.{index}"
+        error = _validate_non_empty_string_field(item, item_path)
+        if error is not None:
+            return error
+    return None
+
+
+def _validate_profile_named_item_array(
+    value: object,
+    field_path: str,
+    required_fields: tuple[str, ...],
+) -> DomainError | None:
+    if not _is_object_array(value):
+        return invalid_field_type(field_path, "object_array")
+
+    for index, item in enumerate(value):
+        for field_name in required_fields:
+            item_path = f"{field_path}.{index}.{field_name}"
+            if field_name not in item:
+                return missing_required_field(item_path)
+            error = _validate_non_empty_string_field(item[field_name], item_path)
+            if error is not None:
+                return error
+    return None
+
+
+def _validate_m4_profile_fields(values: dict[str, object]) -> DomainError | None:
+    fields = values["fields"]
+    if not _is_json_object(fields):
+        return invalid_field_type("fields", "object")
+
+    required_top_level = (
+        "user_facts",
+        "strict_restrictions",
+        "soft_preferences",
+    )
+    for field_name in required_top_level:
+        if field_name not in fields:
+            return missing_required_field(f"fields.{field_name}")
+
+    user_facts = fields["user_facts"]
+    if not _is_json_object(user_facts):
+        return invalid_field_type("fields.user_facts", "object")
+
+    required_user_facts = (
+        "people_count",
+        "locale",
+        "timezone",
+        "available_equipment",
+        "default_max_active_time_minutes",
+    )
+    for field_name in required_user_facts:
+        if field_name not in user_facts:
+            return missing_required_field(f"fields.user_facts.{field_name}")
+
+    checks = (
+        _validate_positive_integer_field(
+            user_facts["people_count"],
+            "fields.user_facts.people_count",
+        ),
+        _validate_non_empty_string_field(
+            user_facts["locale"],
+            "fields.user_facts.locale",
+        ),
+        _validate_non_empty_string_field(
+            user_facts["timezone"],
+            "fields.user_facts.timezone",
+        ),
+        _validate_non_empty_string_array(
+            user_facts["available_equipment"],
+            "fields.user_facts.available_equipment",
+        ),
+        _validate_positive_integer_field(
+            user_facts["default_max_active_time_minutes"],
+            "fields.user_facts.default_max_active_time_minutes",
+        ),
+        _validate_profile_named_item_array(
+            fields["strict_restrictions"],
+            "fields.strict_restrictions",
+            ("kind", "value"),
+        ),
+        _validate_profile_named_item_array(
+            fields["soft_preferences"],
+            "fields.soft_preferences",
+            ("direction", "value"),
+        ),
+    )
+    return next((error for error in checks if error is not None), None)
+
+
+def _validate_m4_profile_version(values: dict[str, object]) -> DomainError | None:
+    version = values["version"]
+    version_error = _validate_positive_integer_field(version, "version")
+    if version_error is not None:
+        return version_error
+    return _validate_m4_profile_fields(values)
 
 
 CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
@@ -194,6 +329,7 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("status", "string", DraftStatus),
             FieldRule("fields", "object"),
         ),
+        _validate_m4_profile_fields,
     ),
     "profile_version": ContractValidator(
         "profile_version",
@@ -204,6 +340,7 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("version", "integer"),
             FieldRule("fields", "object"),
         ),
+        _validate_m4_profile_version,
     ),
     "planning_context": ContractValidator(
         "planning_context",
