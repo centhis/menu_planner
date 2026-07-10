@@ -1,0 +1,4 @@
+interface:
+  display_name: "M2 Domain Skeleton"
+  short_description: "Plan and implement M2 contracts safely"
+  default_prompt: "Use $m2-domain-skeleton to add one M2 domain contract or policy change."

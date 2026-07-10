@@ -51,7 +51,7 @@ case "$cmd" in
         $COMPOSE down
         ;;
     test)
-        app_run python -m pytest tests/unit
+        app_run python -m pytest tests/unit tests/contract
         ;;
     lint)
         app_run python -m ruff check src tests migrations

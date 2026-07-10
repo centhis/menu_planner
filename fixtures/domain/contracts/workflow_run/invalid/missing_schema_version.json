@@ -1,0 +1,7 @@
+{
+  "workflow_id": "workflow_001",
+  "user_id": "user_001",
+  "state": "profile_required",
+  "allowed_actions": [],
+  "attempts": 0
+}

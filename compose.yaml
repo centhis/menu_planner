@@ -81,6 +81,7 @@ services:
       - ./compose.yaml:/app/compose.yaml:ro
       - ./pyproject.toml:/app/pyproject.toml:ro
       - ./docs/runbooks:/app/docs/runbooks:ro
+      - ./fixtures:/app/fixtures:ro
       - ./migrations:/app/migrations:ro
       - ./scripts:/app/scripts:ro
       - ./src:/app/src:ro

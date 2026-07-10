@@ -1,0 +1,8 @@
+{
+  "preview_id": "preview_001",
+  "operation": "show_status",
+  "entity_ref": "workflow_001",
+  "summary_hash": "summary_hash_001",
+  "changes": [],
+  "requires_confirmation": false
+}

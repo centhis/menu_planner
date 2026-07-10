@@ -1,0 +1,7 @@
+{
+  "schema_version": "m2.v1",
+  "name": "item",
+  "quantity": 1.0,
+  "unit": "unit",
+  "status": "pending"
+}

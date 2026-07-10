@@ -1,0 +1,11 @@
+{
+  "confirmation_id": "confirmation_001",
+  "user_id": "user_001",
+  "operation": "commit_menu_revision",
+  "entity_id": "menu_001",
+  "expected_version": 1,
+  "draft_version": 2,
+  "expires_at": "2026-07-10T00:00:00Z",
+  "summary_hash": "summary_hash_001",
+  "status": "created"
+}

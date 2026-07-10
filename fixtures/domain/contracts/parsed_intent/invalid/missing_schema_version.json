@@ -1,0 +1,11 @@
+{
+  "intent": "show_status",
+  "confidence": 1.0,
+  "parameters": {},
+  "missing_fields": [],
+  "ambiguities": [],
+  "operation_class": "read_only",
+  "requires_confirmation": false,
+  "scope": "current_workflow",
+  "suggested_next_action": "show_status"
+}

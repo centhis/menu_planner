@@ -1,0 +1,8 @@
+{
+  "event_id": "audit_event_001",
+  "user_id": "user_001",
+  "operation": "show_status",
+  "occurred_at": "2026-07-10T00:00:00Z",
+  "outcome": "accepted",
+  "details": {}
+}

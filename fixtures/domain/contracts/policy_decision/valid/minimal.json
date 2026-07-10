@@ -1,0 +1,16 @@
+{
+  "schema_version": "m2.v1",
+  "outcome": "allow",
+  "allowed": true,
+  "operation_class": "read_only",
+  "reason_code": "allowed",
+  "current_state": "profile_required",
+  "allowed_actions": [
+    "show_status"
+  ],
+  "required_data": [],
+  "missing_fields": [],
+  "ambiguities": [],
+  "requires_confirmation": false,
+  "errors": []
+}
