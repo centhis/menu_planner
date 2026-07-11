@@ -16,6 +16,7 @@ Menu Planner M1 commands:
   migrate           Run Alembic when available and DATABASE_URL is set
   smoke             Run the current non-destructive smoke checks
   m5-eval           Run the M5 Intent Router eval skeleton
+  m6a-eval          Run the M6A menu draft generation golden eval
   check             Run local CI-equivalent checks available for M1
   clean             Remove generated Python bytecode caches
   clean-runtime     Stop services; volumes are intentionally retained
@@ -78,6 +79,10 @@ case "$cmd" in
     m5-eval)
         shift
         app_run python -m menu_planner.bootstrap.intent_eval_cli "$@"
+        ;;
+    m6a-eval)
+        shift
+        app_run python -m menu_planner.bootstrap.menu_eval_cli "$@"
         ;;
     check)
         "$0" format-check

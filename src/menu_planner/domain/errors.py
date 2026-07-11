@@ -41,6 +41,16 @@ class ErrorCode(StrEnum):
     IDEMPOTENCY_PAYLOAD_MISMATCH = "commit.idempotency_payload_mismatch"
     TRANSACTION_CONFLICT = "commit.transaction_conflict"
     AUDIT_WRITE_FAILURE = "commit.audit_write_failure"
+    MENU_PERIOD_INCOMPLETE = "menu.period_incomplete"
+    MENU_MEAL_SLOT_MISSING = "menu.meal_slot_missing"
+    MENU_STRICT_RESTRICTION_VIOLATED = "menu.strict_restriction_violated"
+    MENU_EQUIPMENT_UNAVAILABLE = "menu.equipment_unavailable"
+    MENU_ACTIVE_TIME_EXCEEDED = "menu.active_time_exceeded"
+    MENU_PORTIONS_INVALID = "menu.portions_invalid"
+    MENU_REPETITION_VIOLATED = "menu.repetition_violated"
+    MENU_REFERENTIAL_INTEGRITY_VIOLATED = (
+        "menu.referential_integrity_violated"
+    )
 
 
 @dataclass(frozen=True)
@@ -269,6 +279,62 @@ ERROR_CATALOG: dict[ErrorCode, ErrorCatalogEntry] = {
         developer_message="Audit event could not be written in the commit transaction.",
         machine_fields=("operation", "entity_id", "reason_code"),
         sources=("safe_commit", "audit_repository"),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_PERIOD_INCOMPLETE: ErrorCatalogEntry(
+        code=ErrorCode.MENU_PERIOD_INCOMPLETE,
+        developer_message="Menu draft does not cover the requested planning period.",
+        machine_fields=("expected_start", "expected_end", "actual_start", "actual_end"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_MEAL_SLOT_MISSING: ErrorCatalogEntry(
+        code=ErrorCode.MENU_MEAL_SLOT_MISSING,
+        developer_message="Menu draft does not cover the required meal slots.",
+        machine_fields=("expected_slot_ids", "actual_slot_ids"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_STRICT_RESTRICTION_VIOLATED: ErrorCatalogEntry(
+        code=ErrorCode.MENU_STRICT_RESTRICTION_VIOLATED,
+        developer_message="Menu draft violates a strict planning restriction.",
+        machine_fields=("restriction", "meal_slot_id", "title"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_EQUIPMENT_UNAVAILABLE: ErrorCatalogEntry(
+        code=ErrorCode.MENU_EQUIPMENT_UNAVAILABLE,
+        developer_message="Menu draft requires unavailable equipment.",
+        machine_fields=("required_equipment", "available_equipment", "meal_slot_id"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_ACTIVE_TIME_EXCEEDED: ErrorCatalogEntry(
+        code=ErrorCode.MENU_ACTIVE_TIME_EXCEEDED,
+        developer_message="Menu draft exceeds the active-time limit.",
+        machine_fields=("limit_minutes", "actual_minutes", "meal_slot_id"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_PORTIONS_INVALID: ErrorCatalogEntry(
+        code=ErrorCode.MENU_PORTIONS_INVALID,
+        developer_message="Menu draft has invalid portion information.",
+        machine_fields=("expected_portions", "actual_portions", "meal_slot_id"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_REPETITION_VIOLATED: ErrorCatalogEntry(
+        code=ErrorCode.MENU_REPETITION_VIOLATED,
+        developer_message="Menu draft repeats the same generated item.",
+        machine_fields=("title", "meal_slot_ids"),
+        sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_REFERENTIAL_INTEGRITY_VIOLATED: ErrorCatalogEntry(
+        code=ErrorCode.MENU_REFERENTIAL_INTEGRITY_VIOLATED,
+        developer_message="Menu draft references unknown or inconsistent meal slots.",
+        machine_fields=("meal_slot_id", "known_slot_ids"),
+        sources=("menu_validation",),
         user_exposure=UserExposure.ADAPTER_REQUIRED,
     ),
 }
@@ -598,5 +664,123 @@ def audit_write_failure(
             "operation": operation,
             "entity_id": entity_id,
             "reason_code": reason_code,
+        },
+    )
+
+
+def menu_period_incomplete(
+    expected_start: str,
+    expected_end: str,
+    actual_start: str,
+    actual_end: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_PERIOD_INCOMPLETE,
+        path=("period_start",),
+        details={
+            "expected_start": expected_start,
+            "expected_end": expected_end,
+            "actual_start": actual_start,
+            "actual_end": actual_end,
+        },
+    )
+
+
+def menu_meal_slot_missing(
+    expected_slot_ids: list[str],
+    actual_slot_ids: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_MEAL_SLOT_MISSING,
+        path=("meal_slots",),
+        details={
+            "expected_slot_ids": ",".join(expected_slot_ids),
+            "actual_slot_ids": ",".join(actual_slot_ids),
+        },
+    )
+
+
+def menu_strict_restriction_violated(
+    restriction: str,
+    meal_slot_id: str,
+    title: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_STRICT_RESTRICTION_VIOLATED,
+        path=("generated_items",),
+        details={
+            "restriction": restriction,
+            "meal_slot_id": meal_slot_id,
+            "title": title,
+        },
+    )
+
+
+def menu_equipment_unavailable(
+    required_equipment: list[str],
+    available_equipment: list[str],
+    meal_slot_id: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_EQUIPMENT_UNAVAILABLE,
+        path=("generated_items",),
+        details={
+            "required_equipment": ",".join(required_equipment),
+            "available_equipment": ",".join(available_equipment),
+            "meal_slot_id": meal_slot_id,
+        },
+    )
+
+
+def menu_active_time_exceeded(
+    limit_minutes: int,
+    actual_minutes: int,
+    meal_slot_id: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_ACTIVE_TIME_EXCEEDED,
+        path=("generated_items",),
+        details={
+            "limit_minutes": limit_minutes,
+            "actual_minutes": actual_minutes,
+            "meal_slot_id": meal_slot_id,
+        },
+    )
+
+
+def menu_portions_invalid(
+    expected_portions: int,
+    actual_portions: int,
+    meal_slot_id: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_PORTIONS_INVALID,
+        path=("generated_items",),
+        details={
+            "expected_portions": expected_portions,
+            "actual_portions": actual_portions,
+            "meal_slot_id": meal_slot_id,
+        },
+    )
+
+
+def menu_repetition_violated(title: str, meal_slot_ids: list[str]) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_REPETITION_VIOLATED,
+        path=("generated_items",),
+        details={"title": title, "meal_slot_ids": ",".join(meal_slot_ids)},
+    )
+
+
+def menu_referential_integrity_violated(
+    meal_slot_id: str,
+    known_slot_ids: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_REFERENTIAL_INTEGRITY_VIOLATED,
+        path=("generated_items",),
+        details={
+            "meal_slot_id": meal_slot_id,
+            "known_slot_ids": ",".join(known_slot_ids),
         },
     )

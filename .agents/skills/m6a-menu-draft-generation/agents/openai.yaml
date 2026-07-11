@@ -1,0 +1,4 @@
+interface:
+  display_name: "M6A Menu Draft"
+  short_description: "Build the M6A validated menu draft generation slice."
+  default_prompt: "Use M6A menu draft generation workflow."

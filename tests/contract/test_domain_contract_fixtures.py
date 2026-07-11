@@ -20,6 +20,11 @@ EXPECTED_INVALID_ERROR_CODES = {
     "equipment_item_not_string.json": ErrorCode.INVALID_FIELD_TYPE,
     "people_count_zero.json": ErrorCode.INVALID_RANGE,
     "version_zero.json": ErrorCode.INVALID_RANGE,
+    "week_period_not_m6a.json": ErrorCode.INVALID_RANGE,
+    "meal_slots_empty.json": ErrorCode.INVALID_RANGE,
+    "missing_planning_context_id.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "generated_item_missing_title.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "missing_slot_id.json": ErrorCode.MISSING_REQUIRED_FIELD,
 }
 
 EXPECTED_INVALID_ERROR_PATHS = {
@@ -33,6 +38,11 @@ EXPECTED_INVALID_ERROR_PATHS = {
     ),
     "people_count_zero.json": ("fields.user_facts.people_count",),
     "version_zero.json": ("version",),
+    "week_period_not_m6a.json": ("period_end",),
+    "meal_slots_empty.json": ("meal_slots",),
+    "missing_planning_context_id.json": ("planning_context_id",),
+    "generated_item_missing_title.json": ("generated_items.0.title",),
+    "missing_slot_id.json": ("slot_id",),
 }
 
 

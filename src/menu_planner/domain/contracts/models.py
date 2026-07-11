@@ -94,12 +94,17 @@ class PlanningContext:
     user_id: str
     context_id: str
     profile_version: int
+    planning_request_id: str
+    period_start: str
+    period_end: str
+    meal_slots: list[JsonObject]
     constraints: JsonObject
 
 
 @dataclass(frozen=True)
 class MealSlot:
     schema_version: str
+    slot_id: str
     date: str
     meal_type: str
     requirements: JsonObject
@@ -111,7 +116,11 @@ class MenuDraft:
     user_id: str
     draft_id: str
     status: DraftStatus
+    planning_context_id: str
+    period_start: str
+    period_end: str
     meal_slots: list[JsonObject]
+    generated_items: list[JsonObject]
 
 
 @dataclass(frozen=True)

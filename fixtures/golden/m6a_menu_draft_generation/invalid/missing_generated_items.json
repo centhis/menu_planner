@@ -1,9 +1,9 @@
 {
   "schema_version": "m2.v1",
   "user_id": "user_001",
-  "context_id": "planning_context_001",
-  "profile_version": 1,
-  "planning_request_id": "planning_request_001",
+  "draft_id": "menu_draft_001",
+  "status": "generated",
+  "planning_context_id": "planning_context_001",
   "period_start": "2026-07-10",
   "period_end": "2026-07-10",
   "meal_slots": [
@@ -14,10 +14,5 @@
       "meal_type": "dinner",
       "requirements": {}
     }
-  ],
-  "constraints": {
-    "strict_restrictions": [],
-    "available_equipment": ["stovetop"],
-    "max_active_time_minutes": 30
-  }
+  ]
 }

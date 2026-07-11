@@ -265,3 +265,53 @@ Until resolved:
 - Do not connect router output to direct commit.
 - Do not select production Hermes/Telegram UX or idempotency mapping from M5
   eval implementation details.
+
+## OQ-006: Product menu semantics, model generation, and menu activation
+
+Status: open; ADR-0008 accepts only a technical M6A one-day fake-generator
+slice
+Date: 2026-07-11
+
+Question: Which product menu semantics, model-backed generation choices, and
+menu activation workflow should be selected after the M6A one-day fake slice is
+measured?
+
+Known facts:
+
+- ADR-0008 starts M6A with a one-day deterministic fake generator.
+- ADR-0008 allows `PlanningContext` only from confirmed profile data, explicit
+  planning request parameters, and accepted deterministic technical defaults.
+- ADR-0008 treats the M4 profile shape as a technical source only, not as the
+  final product menu-generation input schema.
+- ADR-0008 sets the initial technical repair-loop limit to two attempts.
+- ADR-0008 allows safe preview only for a validated menu draft and does not
+  select menu activation or safe commit.
+- ADR-0008 defers model-backed generation until provider/model, prompt/schema,
+  credentials, raw-output, eval/golden, and failure-handling policies are
+  explicitly approved.
+
+Needed decisions before production menu workflows:
+
+- Final meal slot taxonomy and whether defaults such as breakfast/lunch/dinner
+  are product-wide, locale-specific, or user-configurable.
+- Final menu period semantics for one day, week, and month.
+- Final product profile fields that can safely drive menu generation.
+- Nutrition, budget, cuisine, store, product, substitution, recipe, and
+  shopping-list semantics.
+- Whether and when to add a model-backed generator experiment.
+- Provider/model/version and prompt/schema versioning for any model-backed
+  generation.
+- Raw-output retention/sanitization policy for generation artifacts.
+- Menu activation confirmation lifecycle, idempotency mapping, and safe commit
+  workflow.
+- Future Hermes/Telegram UX for menu preview, repair, and confirmation.
+
+Until resolved:
+
+- Keep M6A generation deterministic, fake, one-day-first, and runnable without
+  Hermes, Telegram, external providers, network access, or secrets.
+- Do not infer product menu semantics from M4 profile fixtures.
+- Do not activate a menu, create recipes, build shopping lists, or match store
+  products from M6A draft output.
+- Do not choose production model/provider or prompt policy from fake-generator
+  implementation details.

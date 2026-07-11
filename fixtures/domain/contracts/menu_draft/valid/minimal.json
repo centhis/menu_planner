@@ -3,5 +3,22 @@
   "user_id": "user_001",
   "draft_id": "menu_draft_001",
   "status": "created",
-  "meal_slots": []
+  "planning_context_id": "planning_context_001",
+  "period_start": "2026-07-10",
+  "period_end": "2026-07-10",
+  "meal_slots": [
+    {
+      "schema_version": "m2.v1",
+      "slot_id": "slot_001",
+      "date": "2026-07-10",
+      "meal_type": "dinner",
+      "requirements": {}
+    }
+  ],
+  "generated_items": [
+    {
+      "meal_slot_id": "slot_001",
+      "title": "M6A fake dinner"
+    }
+  ]
 }

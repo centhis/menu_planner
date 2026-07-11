@@ -304,6 +304,133 @@ def _validate_m4_profile_version(values: dict[str, object]) -> DomainError | Non
     return _validate_m4_profile_fields(values)
 
 
+def _validate_m6a_meal_slot_object(
+    value: JsonObject,
+    field_path: str,
+) -> DomainError | None:
+    required_fields = ("schema_version", "slot_id", "date", "meal_type", "requirements")
+    for field_name in required_fields:
+        item_path = f"{field_path}.{field_name}"
+        if field_name not in value:
+            return missing_required_field(item_path)
+
+    if value["schema_version"] != SCHEMA_VERSION:
+        return invalid_schema_version(cast(str, value["schema_version"]))
+
+    for field_name in ("slot_id", "date", "meal_type"):
+        error = _validate_non_empty_string_field(
+            value[field_name],
+            f"{field_path}.{field_name}",
+        )
+        if error is not None:
+            return error
+
+    if not _is_json_object(value["requirements"]):
+        return invalid_field_type(f"{field_path}.requirements", "object")
+    return None
+
+
+def _validate_m6a_meal_slots(
+    value: object,
+    field_path: str,
+) -> DomainError | None:
+    if not _is_object_array(value):
+        return invalid_field_type(field_path, "object_array")
+    if not value:
+        return invalid_range(field_path, 1, 2147483647, 0)
+
+    for index, item in enumerate(value):
+        error = _validate_m6a_meal_slot_object(item, f"{field_path}.{index}")
+        if error is not None:
+            return error
+    return None
+
+
+def _validate_m6a_one_day_period(values: dict[str, object]) -> DomainError | None:
+    period_start = values["period_start"]
+    period_end = values["period_end"]
+    for field_name, value in (
+        ("period_start", period_start),
+        ("period_end", period_end),
+    ):
+        error = _validate_non_empty_string_field(value, field_name)
+        if error is not None:
+            return error
+    if period_start != period_end:
+        return invalid_range("period_end", 1, 1, 2)
+    return None
+
+
+def _validate_m6a_planning_context(values: dict[str, object]) -> DomainError | None:
+    profile_version_error = _validate_positive_integer_field(
+        values["profile_version"],
+        "profile_version",
+    )
+    if profile_version_error is not None:
+        return profile_version_error
+
+    for field_name in ("planning_request_id", "context_id", "user_id"):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    period_error = _validate_m6a_one_day_period(values)
+    if period_error is not None:
+        return period_error
+
+    return _validate_m6a_meal_slots(values["meal_slots"], "meal_slots")
+
+
+def _validate_m6a_meal_slot(values: dict[str, object]) -> DomainError | None:
+    error = _validate_non_empty_string_field(values["slot_id"], "slot_id")
+    if error is not None:
+        return error
+    error = _validate_non_empty_string_field(values["date"], "date")
+    if error is not None:
+        return error
+    return _validate_non_empty_string_field(values["meal_type"], "meal_type")
+
+
+def _validate_m6a_generated_items(
+    value: object,
+    field_path: str,
+) -> DomainError | None:
+    if not _is_object_array(value):
+        return invalid_field_type(field_path, "object_array")
+    if not value:
+        return invalid_range(field_path, 1, 2147483647, 0)
+
+    for index, item in enumerate(value):
+        for field_name in ("meal_slot_id", "title"):
+            item_path = f"{field_path}.{index}.{field_name}"
+            if field_name not in item:
+                return missing_required_field(item_path)
+            error = _validate_non_empty_string_field(item[field_name], item_path)
+            if error is not None:
+                return error
+    return None
+
+
+def _validate_m6a_menu_draft(values: dict[str, object]) -> DomainError | None:
+    for field_name in ("planning_context_id", "draft_id", "user_id"):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    period_error = _validate_m6a_one_day_period(values)
+    if period_error is not None:
+        return period_error
+
+    meal_slots_error = _validate_m6a_meal_slots(values["meal_slots"], "meal_slots")
+    if meal_slots_error is not None:
+        return meal_slots_error
+
+    return _validate_m6a_generated_items(
+        values["generated_items"],
+        "generated_items",
+    )
+
+
 CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
     "parsed_intent": ContractValidator(
         "parsed_intent",
@@ -349,17 +476,24 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("user_id", "string"),
             FieldRule("context_id", "string"),
             FieldRule("profile_version", "integer"),
+            FieldRule("planning_request_id", "string"),
+            FieldRule("period_start", "string"),
+            FieldRule("period_end", "string"),
+            FieldRule("meal_slots", "object_array"),
             FieldRule("constraints", "object"),
         ),
+        _validate_m6a_planning_context,
     ),
     "meal_slot": ContractValidator(
         "meal_slot",
         MealSlot,
         (
+            FieldRule("slot_id", "string"),
             FieldRule("date", "string"),
             FieldRule("meal_type", "string"),
             FieldRule("requirements", "object"),
         ),
+        _validate_m6a_meal_slot,
     ),
     "menu_draft": ContractValidator(
         "menu_draft",
@@ -368,8 +502,13 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("user_id", "string"),
             FieldRule("draft_id", "string"),
             FieldRule("status", "string", DraftStatus),
+            FieldRule("planning_context_id", "string"),
+            FieldRule("period_start", "string"),
+            FieldRule("period_end", "string"),
             FieldRule("meal_slots", "object_array"),
+            FieldRule("generated_items", "object_array"),
         ),
+        _validate_m6a_menu_draft,
     ),
     "menu_version": ContractValidator(
         "menu_version",
