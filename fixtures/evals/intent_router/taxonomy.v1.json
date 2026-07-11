@@ -1,0 +1,148 @@
+{
+  "schema_version": "m5.intent_taxonomy.v1",
+  "taxonomy_version": "m5.intent_taxonomy.v1",
+  "description": "M5 Intent Router taxonomy tied to current workflow actions and operation classes. Future menu, recipe, shopping, store, and substitution requests are unsupported until their production slices exist.",
+  "intents": [
+    {
+      "name": "show_status",
+      "workflow_action": "show_status",
+      "operation_class": "read_only",
+      "required_parameters": [],
+      "missing_field_policy": "allow_when_workflow_policy_allows",
+      "ambiguity_policy": "clarify_when_ambiguities_present",
+      "scope": "current_workflow",
+      "requires_confirmation": false,
+      "supported": true,
+      "representative_policy_cases": [
+        {
+          "workflow_state": "profile_required",
+          "expected_outcome": "allow",
+          "expected_allowed": true,
+          "expected_reason_code": "policy.allowed"
+        }
+      ]
+    },
+    {
+      "name": "submit_profile_draft",
+      "workflow_action": "submit_profile_draft",
+      "operation_class": "draft_producing",
+      "required_parameters": ["profile_fields"],
+      "missing_field_policy": "clarify",
+      "ambiguity_policy": "clarify",
+      "scope": "m4_profile",
+      "requires_confirmation": false,
+      "supported": true,
+      "representative_policy_cases": [
+        {
+          "workflow_state": "profile_required",
+          "expected_outcome": "allow",
+          "expected_allowed": true,
+          "expected_reason_code": "policy.allowed"
+        },
+        {
+          "workflow_state": "ready",
+          "expected_outcome": "deny",
+          "expected_allowed": false,
+          "expected_reason_code": "policy.action_not_allowed"
+        }
+      ]
+    },
+    {
+      "name": "confirm_profile_draft",
+      "workflow_action": "confirm_profile_draft",
+      "operation_class": "state_changing",
+      "required_parameters": ["confirmation_id"],
+      "missing_field_policy": "clarify",
+      "ambiguity_policy": "clarify",
+      "scope": "m4_profile",
+      "requires_confirmation": true,
+      "supported": true,
+      "representative_policy_cases": [
+        {
+          "workflow_state": "profile_waiting_confirmation",
+          "expected_outcome": "confirm",
+          "expected_allowed": true,
+          "expected_reason_code": "policy.requires_confirmation"
+        },
+        {
+          "workflow_state": "profile_required",
+          "expected_outcome": "deny",
+          "expected_allowed": false,
+          "expected_reason_code": "policy.action_not_allowed"
+        }
+      ]
+    },
+    {
+      "name": "cancel_workflow",
+      "workflow_action": "cancel_workflow",
+      "operation_class": "state_changing",
+      "required_parameters": [],
+      "missing_field_policy": "allow_when_workflow_policy_allows",
+      "ambiguity_policy": "clarify",
+      "scope": "current_workflow",
+      "requires_confirmation": true,
+      "supported": true,
+      "representative_policy_cases": [
+        {
+          "workflow_state": "profile_required",
+          "expected_outcome": "confirm",
+          "expected_allowed": true,
+          "expected_reason_code": "policy.requires_confirmation"
+        },
+        {
+          "workflow_state": "ready",
+          "expected_outcome": "deny",
+          "expected_allowed": false,
+          "expected_reason_code": "policy.action_not_allowed"
+        }
+      ]
+    },
+    {
+      "name": "install_skill",
+      "workflow_action": "install_skill",
+      "operation_class": "administrative",
+      "required_parameters": ["skill_name"],
+      "missing_field_policy": "deny_in_user_workflow",
+      "ambiguity_policy": "deny_in_user_workflow",
+      "scope": "administrative",
+      "requires_confirmation": false,
+      "supported": false,
+      "representative_policy_cases": [
+        {
+          "workflow_state": "ready",
+          "expected_outcome": "deny",
+          "expected_allowed": false,
+          "expected_reason_code": "policy.administrative_action_denied"
+        }
+      ]
+    },
+    {
+      "name": "unsupported",
+      "workflow_action": "unsupported",
+      "operation_class": "unsupported",
+      "required_parameters": [],
+      "missing_field_policy": "unsupported",
+      "ambiguity_policy": "unsupported",
+      "scope": "out_of_scope",
+      "requires_confirmation": false,
+      "supported": false,
+      "representative_policy_cases": [
+        {
+          "workflow_state": "ready",
+          "expected_outcome": "unsupported",
+          "expected_allowed": false,
+          "expected_reason_code": "policy.unsupported_intent"
+        }
+      ]
+    }
+  ],
+  "deferred_intent_names": [
+    "generate_menu_draft",
+    "confirm_menu_draft",
+    "generate_recipe_drafts",
+    "build_shopping_list",
+    "match_products",
+    "replace_meal",
+    "create_shopping_list"
+  ]
+}

@@ -15,6 +15,7 @@ Menu Planner M1 commands:
   typecheck         Run mypy when available, otherwise explain deferral
   migrate           Run Alembic when available and DATABASE_URL is set
   smoke             Run the current non-destructive smoke checks
+  m5-eval           Run the M5 Intent Router eval skeleton
   check             Run local CI-equivalent checks available for M1
   clean             Remove generated Python bytecode caches
   clean-runtime     Stop services; volumes are intentionally retained
@@ -73,6 +74,10 @@ case "$cmd" in
         ;;
     smoke)
         scripts/smoke.sh
+        ;;
+    m5-eval)
+        shift
+        app_run python -m menu_planner.bootstrap.intent_eval_cli "$@"
         ;;
     check)
         "$0" format-check

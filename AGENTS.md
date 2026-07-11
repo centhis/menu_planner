@@ -2,7 +2,10 @@
 
 ## Sources of truth
 
-Перед работой изучи относящиеся к задаче разделы:
+Перед работой изучи относящиеся к задаче разделы. Для routine stage-задач
+можно использовать активный skill и stage brief как первичный контекст, а
+полные source documents открывать только когда brief недостаточен или меняется
+архитектура/ADR/stage plan:
 
 - docs/concept.md
 - docs/architecture.md
@@ -94,6 +97,27 @@ Hermes интегрируется с Application service через HTTP API. He
 8. Перечисли непроверенные предположения.
 
 Не выполняй соседние задачи самостоятельно.
+
+## Context and message economy
+
+- Экономь Codex message limit. Для маленьких задач делай один короткий update
+  перед изменениями и один финальный отчёт, если не возник блокер.
+- Для stage-задач сначала читай активный skill и краткий stage brief
+  `docs/briefs/<stage>-agent-brief.md`, если он есть.
+- Не перечитывай все source-of-truth документы на каждом маленьком шаге.
+  Открывай полные `concept`, `architecture`, `domain-rules` и
+  `implementation-plan` только если меняется архитектура, ADR/stage plan,
+  границы компонентов, или brief/skill не хватает для безопасного решения.
+- Для documentation-only и skill-only задач запускай `git diff --check` и
+  релевантную валидацию документа/skill. Не запускай полный application test
+  suite без отдельной причины.
+- Для code changes сначала запускай narrow targeted checks. Full
+  `scripts/dev.sh check` или набор `test/lint/typecheck/smoke` запускай для
+  shared behavior, stage gate, рискованных изменений или по прямому запросу.
+- Не запускай проверочный prompt вида "Ничего не меняй, опиши границы" после
+  каждого создания skill, если skill уже валидирован локальными checks.
+- При планировании следующих стадий включай stage brief и brief-first правила
+  в новый stage skill, чтобы последующие задачи не требовали длинных prompts.
 
 ## Decision approval
 

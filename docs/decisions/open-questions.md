@@ -214,3 +214,54 @@ Until resolved:
 - Do not infer user-facing product semantics from M4 fixture values.
 - Do not use M4 profile shape as the final menu-generation input contract
   without a follow-up decision.
+
+## OQ-005: Intent Router thresholds, model candidate, and adapter mapping
+
+Status: open for production adapters; ADR-0007 selects the conservative M5
+baseline and fallback policy
+Date: 2026-07-11
+
+Question: Which confidence thresholds, model-backed router candidate, and
+adapter-level routing/idempotency mappings should be selected after M5 eval
+evidence exists?
+
+Known facts:
+
+- ADR-0007 places the M5 router boundary in the application layer for
+  testability and safety.
+- ADR-0007 selects a deterministic rule-based baseline as the Gate M5 target.
+- ADR-0007 defers model-backed routing until provider/model choice,
+  credentials handling, prompt/schema versioning, and raw-output policy are
+  explicitly approved.
+- Self-reported confidence is not sufficient evidence for execution safety.
+- The hard M5 safety gate is zero dangerous state-changing/admin false
+  automatic execution on the M5 eval set.
+- M5 eval selected `rule_based_baseline` / `m5.rule_based_baseline.v1` for the
+  next milestone boundary with zero failures on 12 synthetic eval cases.
+- M5 confidence values are diagnostic only; workflow policy remains the
+  execution authority.
+- M5 fallback behavior is conservative: clarify ambiguous or incomplete input,
+  deny administrative input, return unsupported for unknown/deferred intents,
+  and route state-changing input to confirmation policy rather than commit.
+
+Needed decisions before production adapters:
+
+- Whether a model-backed router candidate is needed after the M5 deterministic
+  baseline, and what additional eval evidence would justify it.
+- Which model/provider/version, if any, may be used for router experiments.
+- Production confidence thresholds by operation class, based on larger eval
+  evidence.
+- Whether production fallback below threshold should stay as M5 clarify/deny/
+  unsupported behavior or route to a future guided UI.
+- Adapter mapping from Hermes/Telegram/HTTP metadata to router request context.
+- Adapter-level idempotency key mapping for later state-changing flows.
+- Raw/model output retention and sanitization policy for eval artifacts.
+
+Until resolved:
+
+- Keep the M5 baseline runnable without Hermes, Telegram, external providers,
+  network access, or secrets.
+- Do not allow confidence alone to bypass workflow policy.
+- Do not connect router output to direct commit.
+- Do not select production Hermes/Telegram UX or idempotency mapping from M5
+  eval implementation details.
