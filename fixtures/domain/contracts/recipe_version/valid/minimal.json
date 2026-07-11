@@ -3,5 +3,37 @@
   "user_id": "user_001",
   "recipe_id": "recipe_001",
   "version": 1,
-  "ingredients": []
+  "source_menu_id": "menu_001",
+  "source_menu_version": 1,
+  "source_meal_slot_id": "slot_001",
+  "title": "M6B fake dinner recipe",
+  "portions": 2,
+  "ingredients": [
+    {
+      "schema_version": "m2.v1",
+      "ingredient_id": "ingredient_001",
+      "name": "rice",
+      "quantity": 200,
+      "unit": "gram"
+    }
+  ],
+  "equipment": ["stovetop"],
+  "active_time_minutes": 20,
+  "total_time_minutes": 30,
+  "steps": [
+    {
+      "schema_version": "m2.v1",
+      "step_id": "step_001",
+      "order": 1,
+      "instruction": "Cook rice on the stovetop.",
+      "ingredient_ids": ["ingredient_001"],
+      "method": "simmer"
+    }
+  ],
+  "storage": {
+    "instructions": "Refrigerate in a covered container."
+  },
+  "reheating": {
+    "instructions": "Reheat gently on the stovetop."
+  }
 }

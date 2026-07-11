@@ -17,7 +17,7 @@
       "unit": "gram"
     }
   ],
-  "equipment": ["stovetop"],
+  "equipment": ["oven"],
   "active_time_minutes": 20,
   "total_time_minutes": 30,
   "steps": [
@@ -25,15 +25,15 @@
       "schema_version": "m2.v1",
       "step_id": "step_001",
       "order": 1,
-      "instruction": "Cook rice on the stovetop.",
+      "instruction": "Bake rice.",
       "ingredient_ids": ["ingredient_001"],
-      "method": "simmer"
+      "method": "bake"
     }
   ],
   "storage": {
-    "instructions": "Refrigerate in a covered container."
+    "instructions": "Refrigerate."
   },
   "reheating": {
-    "instructions": "Reheat gently on the stovetop."
+    "instructions": "Reheat."
   }
 }

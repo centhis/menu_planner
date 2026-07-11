@@ -431,6 +431,237 @@ def _validate_m6a_menu_draft(values: dict[str, object]) -> DomainError | None:
     )
 
 
+def _validate_m6b_recipe_ingredient(
+    value: JsonObject,
+    field_path: str,
+) -> DomainError | None:
+    required_fields = (
+        "schema_version",
+        "ingredient_id",
+        "name",
+        "quantity",
+        "unit",
+    )
+    for field_name in required_fields:
+        item_path = f"{field_path}.{field_name}"
+        if field_name not in value:
+            return missing_required_field(item_path)
+
+    if value["schema_version"] != SCHEMA_VERSION:
+        return invalid_schema_version(cast(str, value["schema_version"]))
+
+    for field_name in ("ingredient_id", "name", "unit"):
+        error = _validate_non_empty_string_field(
+            value[field_name],
+            f"{field_path}.{field_name}",
+        )
+        if error is not None:
+            return error
+
+    quantity = value["quantity"]
+    if not _is_number(quantity):
+        return invalid_field_type(f"{field_path}.quantity", "number")
+    if quantity <= 0:
+        return invalid_range(f"{field_path}.quantity", 1, 2147483647, quantity)
+    return None
+
+
+def _validate_m6b_recipe_ingredients(
+    value: object,
+) -> tuple[set[str], DomainError | None]:
+    if not _is_object_array(value):
+        return set(), invalid_field_type("ingredients", "object_array")
+    if not value:
+        return set(), invalid_range("ingredients", 1, 2147483647, 0)
+
+    ingredient_ids: set[str] = set()
+    for index, item in enumerate(value):
+        error = _validate_m6b_recipe_ingredient(item, f"ingredients.{index}")
+        if error is not None:
+            return set(), error
+        ingredient_id = cast(str, item["ingredient_id"])
+        if ingredient_id in ingredient_ids:
+            return set(), invalid_enum_value(
+                f"ingredients.{index}.ingredient_id",
+                sorted(ingredient_ids),
+            )
+        ingredient_ids.add(ingredient_id)
+    return ingredient_ids, None
+
+
+def _validate_m6b_recipe_step(
+    value: JsonObject,
+    field_path: str,
+    ingredient_ids: set[str],
+) -> DomainError | None:
+    required_fields = (
+        "schema_version",
+        "step_id",
+        "order",
+        "instruction",
+        "ingredient_ids",
+        "method",
+    )
+    for field_name in required_fields:
+        item_path = f"{field_path}.{field_name}"
+        if field_name not in value:
+            return missing_required_field(item_path)
+
+    if value["schema_version"] != SCHEMA_VERSION:
+        return invalid_schema_version(cast(str, value["schema_version"]))
+
+    for field_name in ("step_id", "instruction", "method"):
+        error = _validate_non_empty_string_field(
+            value[field_name],
+            f"{field_path}.{field_name}",
+        )
+        if error is not None:
+            return error
+
+    order_error = _validate_positive_integer_field(
+        value["order"],
+        f"{field_path}.order",
+    )
+    if order_error is not None:
+        return order_error
+
+    ingredient_refs_error = _validate_non_empty_string_array(
+        value["ingredient_ids"],
+        f"{field_path}.ingredient_ids",
+    )
+    if ingredient_refs_error is not None:
+        return ingredient_refs_error
+    for index, ingredient_id in enumerate(cast(list[str], value["ingredient_ids"])):
+        if ingredient_id not in ingredient_ids:
+            return invalid_enum_value(
+                f"{field_path}.ingredient_ids.{index}",
+                sorted(ingredient_ids),
+            )
+
+    method = cast(str, value["method"])
+    if "temperature_celsius" in value:
+        temperature = value["temperature_celsius"]
+        if not isinstance(temperature, int) or isinstance(temperature, bool):
+            return invalid_field_type(f"{field_path}.temperature_celsius", "integer")
+        if temperature < 1:
+            return invalid_range(
+                f"{field_path}.temperature_celsius",
+                1,
+                1000,
+                temperature,
+            )
+    elif method in {"bake", "roast"}:
+        return missing_required_field(f"{field_path}.temperature_celsius")
+    return None
+
+
+def _validate_m6b_recipe_steps(
+    value: object,
+    ingredient_ids: set[str],
+) -> DomainError | None:
+    if not _is_object_array(value):
+        return invalid_field_type("steps", "object_array")
+    if not value:
+        return invalid_range("steps", 1, 2147483647, 0)
+
+    for index, item in enumerate(value):
+        error = _validate_m6b_recipe_step(item, f"steps.{index}", ingredient_ids)
+        if error is not None:
+            return error
+    return None
+
+
+def _validate_m6b_recipe_notes(
+    value: object,
+    field_path: str,
+) -> DomainError | None:
+    if not _is_json_object(value):
+        return invalid_field_type(field_path, "object")
+    for field_name in ("instructions",):
+        if field_name not in value:
+            return missing_required_field(f"{field_path}.{field_name}")
+        error = _validate_non_empty_string_field(
+            value[field_name],
+            f"{field_path}.{field_name}",
+        )
+        if error is not None:
+            return error
+    return None
+
+
+def _validate_m6b_recipe_draft(values: dict[str, object]) -> DomainError | None:
+    for field_name in (
+        "draft_id",
+        "user_id",
+        "source_menu_id",
+        "source_meal_slot_id",
+        "title",
+    ):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    for field_name in (
+        "source_menu_version",
+        "portions",
+        "active_time_minutes",
+        "total_time_minutes",
+    ):
+        error = _validate_positive_integer_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    if cast(int, values["active_time_minutes"]) > cast(
+        int,
+        values["total_time_minutes"],
+    ):
+        return invalid_range(
+            "active_time_minutes",
+            1,
+            cast(int, values["total_time_minutes"]),
+            cast(int, values["active_time_minutes"]),
+        )
+
+    equipment_error = _validate_non_empty_string_array(
+        values["equipment"],
+        "equipment",
+    )
+    if equipment_error is not None:
+        return equipment_error
+
+    ingredient_ids, ingredients_error = _validate_m6b_recipe_ingredients(
+        values["ingredients"]
+    )
+    if ingredients_error is not None:
+        return ingredients_error
+
+    steps_error = _validate_m6b_recipe_steps(values["steps"], ingredient_ids)
+    if steps_error is not None:
+        return steps_error
+
+    storage_error = _validate_m6b_recipe_notes(values["storage"], "storage")
+    if storage_error is not None:
+        return storage_error
+    return _validate_m6b_recipe_notes(values["reheating"], "reheating")
+
+
+def _validate_m6b_recipe_version(values: dict[str, object]) -> DomainError | None:
+    version_error = _validate_positive_integer_field(values["version"], "version")
+    if version_error is not None:
+        return version_error
+
+    recipe_id_error = _validate_non_empty_string_field(
+        values["recipe_id"],
+        "recipe_id",
+    )
+    if recipe_id_error is not None:
+        return recipe_id_error
+
+    draft_like_values = dict(values)
+    draft_like_values["draft_id"] = values["recipe_id"]
+    return _validate_m6b_recipe_draft(draft_like_values)
+
+
 CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
     "parsed_intent": ContractValidator(
         "parsed_intent",
@@ -536,8 +767,20 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("user_id", "string"),
             FieldRule("draft_id", "string"),
             FieldRule("status", "string", DraftStatus),
+            FieldRule("source_menu_id", "string"),
+            FieldRule("source_menu_version", "integer"),
+            FieldRule("source_meal_slot_id", "string"),
+            FieldRule("title", "string"),
+            FieldRule("portions", "integer"),
             FieldRule("ingredients", "object_array"),
+            FieldRule("equipment", "string_array"),
+            FieldRule("active_time_minutes", "integer"),
+            FieldRule("total_time_minutes", "integer"),
+            FieldRule("steps", "object_array"),
+            FieldRule("storage", "object"),
+            FieldRule("reheating", "object"),
         ),
+        _validate_m6b_recipe_draft,
     ),
     "recipe_version": ContractValidator(
         "recipe_version",
@@ -546,8 +789,20 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("user_id", "string"),
             FieldRule("recipe_id", "string"),
             FieldRule("version", "integer"),
+            FieldRule("source_menu_id", "string"),
+            FieldRule("source_menu_version", "integer"),
+            FieldRule("source_meal_slot_id", "string"),
+            FieldRule("title", "string"),
+            FieldRule("portions", "integer"),
             FieldRule("ingredients", "object_array"),
+            FieldRule("equipment", "string_array"),
+            FieldRule("active_time_minutes", "integer"),
+            FieldRule("total_time_minutes", "integer"),
+            FieldRule("steps", "object_array"),
+            FieldRule("storage", "object"),
+            FieldRule("reheating", "object"),
         ),
+        _validate_m6b_recipe_version,
     ),
     "shopping_list_item": ContractValidator(
         "shopping_list_item",

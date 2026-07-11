@@ -315,3 +315,59 @@ Until resolved:
   products from M6A draft output.
 - Do not choose production model/provider or prompt policy from fake-generator
   implementation details.
+
+## OQ-007: Recipe semantics, replacement UX, and shopping boundary
+
+Status: open; ADR-0009 accepts only a technical M6B fake-generator and
+one-slot replacement slice
+Date: 2026-07-11
+
+Question: Which product recipe semantics, replacement UX, model-backed choices,
+and dependent recalculation behavior should be selected after the M6B fake
+slice is measured?
+
+Known facts:
+
+- ADR-0009 starts M6B from an accepted menu fixture or minimal confirmed-menu
+  path, not from Hermes memory or raw Telegram text.
+- ADR-0009 allows recipes after an accepted or confirmed menu boundary, with
+  explicit pre-generation only as a technical path for validated drafts.
+- ADR-0009 keeps recipe and replacement generation deterministic, fake,
+  provider-free, and side-effect free for Gate M6B.
+- ADR-0009 requires replacement to change exactly one meal slot and produce a
+  new menu draft/version rather than mutating the source menu in place.
+- ADR-0009 requires exact replacement diff and deterministic stale
+  confirmation rejection.
+- ADR-0009 explicitly excludes shopping lists, store catalog, product matching,
+  prices, packages, aisle data, and purchase arithmetic from M6B.
+
+Needed decisions before production recipe/replacement workflows:
+
+- Final recipe ingredient taxonomy.
+- Final unit system and unit conversion policy.
+- Final portion semantics, leftovers, and household scaling behavior.
+- Final cookware/equipment taxonomy.
+- Final active/total time semantics.
+- Final temperature and cooking-method ontology.
+- Final storage and reheating requirements.
+- Recipe quality, nutrition, budget, cuisine, substitution, and product
+  matching semantics.
+- Replacement confirmation UX and what wording is user-facing.
+- Whether replacement should invalidate, preserve, or regenerate recipe
+  versions for affected slots.
+- Whether and when to add a model-backed recipe/replacement experiment.
+- Provider/model/version and prompt/schema versioning for any model-backed
+  recipe/replacement generation.
+- Raw-output retention/sanitization policy for recipe/replacement artifacts.
+- Future Hermes/Telegram UX for recipe preview, replacement diff,
+  confirmation, stale confirmation, and failure states.
+
+Until resolved:
+
+- Keep M6B recipe/replacement generation deterministic, fake, and runnable
+  without Hermes, Telegram, external providers, network access, or secrets.
+- Do not infer final recipe semantics from M6A technical menu fixtures.
+- Do not add shopping-list, store-catalog, product-matching, price, package,
+  aisle, or purchase arithmetic behavior in M6B.
+- Do not choose production model/provider or prompt policy from fake-generator
+  implementation details.

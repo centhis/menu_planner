@@ -25,6 +25,13 @@ EXPECTED_INVALID_ERROR_CODES = {
     "missing_planning_context_id.json": ErrorCode.MISSING_REQUIRED_FIELD,
     "generated_item_missing_title.json": ErrorCode.MISSING_REQUIRED_FIELD,
     "missing_slot_id.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "ingredients_empty.json": ErrorCode.INVALID_RANGE,
+    "ingredient_quantity_zero.json": ErrorCode.INVALID_RANGE,
+    "portions_zero.json": ErrorCode.INVALID_RANGE,
+    "active_time_exceeds_total.json": ErrorCode.INVALID_RANGE,
+    "step_unknown_ingredient.json": ErrorCode.INVALID_ENUM_VALUE,
+    "bake_missing_temperature.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "storage_missing_instructions.json": ErrorCode.MISSING_REQUIRED_FIELD,
 }
 
 EXPECTED_INVALID_ERROR_PATHS = {
@@ -43,6 +50,13 @@ EXPECTED_INVALID_ERROR_PATHS = {
     "missing_planning_context_id.json": ("planning_context_id",),
     "generated_item_missing_title.json": ("generated_items.0.title",),
     "missing_slot_id.json": ("slot_id",),
+    "ingredients_empty.json": ("ingredients",),
+    "ingredient_quantity_zero.json": ("ingredients.0.quantity",),
+    "portions_zero.json": ("portions",),
+    "active_time_exceeds_total.json": ("active_time_minutes",),
+    "step_unknown_ingredient.json": ("steps.0.ingredient_ids.0",),
+    "bake_missing_temperature.json": ("steps.0.temperature_celsius",),
+    "storage_missing_instructions.json": ("storage.instructions",),
 }
 
 

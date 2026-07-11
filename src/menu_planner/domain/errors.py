@@ -51,6 +51,9 @@ class ErrorCode(StrEnum):
     MENU_REFERENTIAL_INTEGRITY_VIOLATED = (
         "menu.referential_integrity_violated"
     )
+    MENU_REPLACEMENT_NOT_LOCAL = "menu.replacement_not_local"
+    RECIPE_SOURCE_MISMATCH = "recipe.source_mismatch"
+    RECIPE_EQUIPMENT_UNAVAILABLE = "recipe.equipment_unavailable"
 
 
 @dataclass(frozen=True)
@@ -335,6 +338,27 @@ ERROR_CATALOG: dict[ErrorCode, ErrorCatalogEntry] = {
         developer_message="Menu draft references unknown or inconsistent meal slots.",
         machine_fields=("meal_slot_id", "known_slot_ids"),
         sources=("menu_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.MENU_REPLACEMENT_NOT_LOCAL: ErrorCatalogEntry(
+        code=ErrorCode.MENU_REPLACEMENT_NOT_LOCAL,
+        developer_message="Meal replacement must change exactly one target meal slot.",
+        machine_fields=("target_meal_slot_id", "changed_meal_slot_ids", "reason"),
+        sources=("menu_replacement",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.RECIPE_SOURCE_MISMATCH: ErrorCatalogEntry(
+        code=ErrorCode.RECIPE_SOURCE_MISMATCH,
+        developer_message="Recipe draft does not match the accepted source menu item.",
+        machine_fields=("field", "expected", "actual"),
+        sources=("recipe_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.RECIPE_EQUIPMENT_UNAVAILABLE: ErrorCatalogEntry(
+        code=ErrorCode.RECIPE_EQUIPMENT_UNAVAILABLE,
+        developer_message="Recipe draft requires unavailable equipment.",
+        machine_fields=("required_equipment", "available_equipment"),
+        sources=("recipe_validation",),
         user_exposure=UserExposure.ADAPTER_REQUIRED,
     ),
 }
@@ -782,5 +806,43 @@ def menu_referential_integrity_violated(
         details={
             "meal_slot_id": meal_slot_id,
             "known_slot_ids": ",".join(known_slot_ids),
+        },
+    )
+
+
+def menu_replacement_not_local(
+    target_meal_slot_id: str,
+    changed_meal_slot_ids: list[str],
+    reason: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.MENU_REPLACEMENT_NOT_LOCAL,
+        path=("generated_items",),
+        details={
+            "target_meal_slot_id": target_meal_slot_id,
+            "changed_meal_slot_ids": ",".join(changed_meal_slot_ids),
+            "reason": reason,
+        },
+    )
+
+
+def recipe_source_mismatch(field: str, expected: str, actual: str) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.RECIPE_SOURCE_MISMATCH,
+        path=(field,),
+        details={"field": field, "expected": expected, "actual": actual},
+    )
+
+
+def recipe_equipment_unavailable(
+    required_equipment: list[str],
+    available_equipment: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.RECIPE_EQUIPMENT_UNAVAILABLE,
+        path=("equipment",),
+        details={
+            "required_equipment": ",".join(required_equipment),
+            "available_equipment": ",".join(available_equipment),
         },
     )

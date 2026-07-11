@@ -17,6 +17,7 @@ Menu Planner M1 commands:
   smoke             Run the current non-destructive smoke checks
   m5-eval           Run the M5 Intent Router eval skeleton
   m6a-eval          Run the M6A menu draft generation golden eval
+  m6b-eval          Run the M6B recipe/replacement golden eval
   check             Run local CI-equivalent checks available for M1
   clean             Remove generated Python bytecode caches
   clean-runtime     Stop services; volumes are intentionally retained
@@ -83,6 +84,10 @@ case "$cmd" in
     m6a-eval)
         shift
         app_run python -m menu_planner.bootstrap.menu_eval_cli "$@"
+        ;;
+    m6b-eval)
+        shift
+        app_run python -m menu_planner.bootstrap.recipe_replacement_eval_cli "$@"
         ;;
     check)
         "$0" format-check

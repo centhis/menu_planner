@@ -1,0 +1,4 @@
+interface:
+  display_name: "M6B Recipes"
+  short_description: "Build the M6B recipe and one-slot replacement slice."
+  default_prompt: "Use M6B recipes and replacements workflow."

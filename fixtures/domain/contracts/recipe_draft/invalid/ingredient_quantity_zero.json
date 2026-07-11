@@ -13,7 +13,7 @@
       "schema_version": "m2.v1",
       "ingredient_id": "ingredient_001",
       "name": "rice",
-      "quantity": 200,
+      "quantity": 0,
       "unit": "gram"
     }
   ],
@@ -25,15 +25,15 @@
       "schema_version": "m2.v1",
       "step_id": "step_001",
       "order": 1,
-      "instruction": "Cook rice on the stovetop.",
+      "instruction": "Cook rice.",
       "ingredient_ids": ["ingredient_001"],
       "method": "simmer"
     }
   ],
   "storage": {
-    "instructions": "Refrigerate in a covered container."
+    "instructions": "Refrigerate."
   },
   "reheating": {
-    "instructions": "Reheat gently on the stovetop."
+    "instructions": "Reheat."
   }
 }

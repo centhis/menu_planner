@@ -146,7 +146,18 @@ class RecipeDraft:
     user_id: str
     draft_id: str
     status: DraftStatus
+    source_menu_id: str
+    source_menu_version: int
+    source_meal_slot_id: str
+    title: str
+    portions: int
     ingredients: list[JsonObject]
+    equipment: list[str]
+    active_time_minutes: int
+    total_time_minutes: int
+    steps: list[JsonObject]
+    storage: JsonObject
+    reheating: JsonObject
 
 
 @dataclass(frozen=True)
@@ -155,7 +166,18 @@ class RecipeVersion:
     user_id: str
     recipe_id: str
     version: int
+    source_menu_id: str
+    source_menu_version: int
+    source_meal_slot_id: str
+    title: str
+    portions: int
     ingredients: list[JsonObject]
+    equipment: list[str]
+    active_time_minutes: int
+    total_time_minutes: int
+    steps: list[JsonObject]
+    storage: JsonObject
+    reheating: JsonObject
 
 
 @dataclass(frozen=True)
