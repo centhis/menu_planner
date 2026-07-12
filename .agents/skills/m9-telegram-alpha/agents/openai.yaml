@@ -1,0 +1,4 @@
+interface:
+  display_name: "M9 Telegram Alpha"
+  short_description: "Build the one-user Telegram Alpha slice."
+  default_prompt: "Use $m9-telegram-alpha to build the one-user Telegram Alpha slice."

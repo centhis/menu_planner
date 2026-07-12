@@ -1,0 +1,205 @@
+{
+  "schema_version": "m9.telegram_alpha_presentation_fixture.v1",
+  "cases": [
+    {
+      "kind": "clarification",
+      "payload": {
+        "question": "Which menu period should I use?",
+        "choices": ["today", "tomorrow"]
+      },
+      "expected_lines": [
+        "Clarification needed",
+        "Which menu period should I use?",
+        "Options:",
+        "1. today",
+        "2. tomorrow"
+      ]
+    },
+    {
+      "kind": "preview",
+      "payload": {
+        "title": "Menu for Monday",
+        "summary": "2 meals are ready for review.",
+        "confirmation_id": "confirmation_001",
+        "expected_version": 3,
+        "callback_data": "full-payload-should-not-render"
+      },
+      "expected_lines": [
+        "Draft preview: Menu for Monday",
+        "2 meals are ready for review.",
+        "This is draft state, not active state.",
+        "confirmation_id: confirmation_001",
+        "expected_version: 3"
+      ]
+    },
+    {
+      "kind": "validation_warnings",
+      "payload": {
+        "warnings": ["Budget is close to limit.", "One recipe needs review."]
+      },
+      "expected_lines": [
+        "Validation warnings",
+        "- Budget is close to limit.",
+        "- One recipe needs review."
+      ]
+    },
+    {
+      "kind": "status",
+      "payload": {
+        "workflow_state": "menu_waiting_confirmation",
+        "draft_state": "menu draft exists",
+        "active_state": "no active menu yet",
+        "next_action": "confirm or revise"
+      },
+      "expected_lines": [
+        "Status",
+        "Workflow: menu_waiting_confirmation",
+        "Draft state: menu draft exists",
+        "Active state: no active menu yet",
+        "Next: confirm or revise"
+      ]
+    },
+    {
+      "kind": "error",
+      "payload": {
+        "code": "stale_confirmation",
+        "message": "This confirmation is no longer current.",
+        "next_actions": ["show status", "create a new preview"],
+        "raw_exception": "secret stack trace"
+      },
+      "expected_lines": [
+        "Error",
+        "stale_confirmation: This confirmation is no longer current.",
+        "Next actions:",
+        "- show status",
+        "- create a new preview"
+      ]
+    },
+    {
+      "kind": "cancel",
+      "payload": {
+        "workflow_id": "workflow_001",
+        "next_actions": ["show status", "start again"]
+      },
+      "expected_lines": [
+        "Cancelled workflow workflow_001. No active state was changed.",
+        "Next actions:",
+        "- show status",
+        "- start again"
+      ]
+    },
+    {
+      "kind": "expired_confirmation",
+      "payload": {
+        "confirmation_id": "confirmation_001",
+        "next_actions": ["show status", "create a new preview"],
+        "callback_data": "full-payload-should-not-render"
+      },
+      "expected_lines": [
+        "Confirmation expired",
+        "This preview can no longer be confirmed.",
+        "confirmation_id: confirmation_001",
+        "Next actions:",
+        "- show status",
+        "- create a new preview"
+      ]
+    },
+    {
+      "kind": "validation_error",
+      "payload": {
+        "code": "profile.validation_failed",
+        "message": "Profile draft needs changes.",
+        "errors": ["budget must be positive"],
+        "next_actions": ["revise profile"],
+        "raw_exception": "secret stack trace"
+      },
+      "expected_lines": [
+        "Validation error",
+        "profile.validation_failed: Profile draft needs changes.",
+        "Issues:",
+        "- budget must be positive",
+        "Next actions:",
+        "- revise profile"
+      ]
+    },
+    {
+      "kind": "policy_error",
+      "payload": {
+        "code": "workflow.action_not_allowed",
+        "message": "Finish or cancel the current action first.",
+        "next_actions": ["cancel", "show status"],
+        "token": "should-not-render"
+      },
+      "expected_lines": [
+        "Policy error",
+        "workflow.action_not_allowed: Finish or cancel the current action first.",
+        "Next actions:",
+        "- cancel",
+        "- show status"
+      ]
+    },
+    {
+      "kind": "restart_recovery",
+      "payload": {
+        "workflow_state": "menu_waiting_confirmation",
+        "allowed_actions": ["confirm_menu_draft", "show_status"],
+        "pending_confirmation_id": "confirmation_001",
+        "expected_version": 3,
+        "raw_session_memory": "should-not-render"
+      },
+      "expected_lines": [
+        "Recovered active workflow",
+        "Workflow: menu_waiting_confirmation",
+        "pending_confirmation_id: confirmation_001",
+        "expected_version: 3",
+        "Allowed actions:",
+        "- confirm_menu_draft",
+        "- show_status",
+        "Next actions:",
+        "- resume confirmation",
+        "- cancel"
+      ]
+    },
+    {
+      "kind": "recipe_view",
+      "payload": {
+        "title": "Tomato pasta",
+        "portions": 2,
+        "ingredients": ["pasta", "tomatoes"],
+        "steps": ["Boil pasta.", "Warm sauce."]
+      },
+      "expected_lines": [
+        "Recipe: Tomato pasta",
+        "Portions: 2",
+        "Ingredients:",
+        "- pasta",
+        "- tomatoes",
+        "Steps:",
+        "1. Boil pasta.",
+        "2. Warm sauce."
+      ]
+    },
+    {
+      "kind": "shopping_checklist",
+      "payload": {
+        "items": [
+          {
+            "shopping_item_id": "item_001",
+            "name": "milk",
+            "status": "open"
+          },
+          {
+            "shopping_item_id": "item_002",
+            "name": "bread",
+            "status": "done"
+          }
+        ]
+      },
+      "expected_lines": [
+        "Shopping checklist",
+        "[ ] milk (item_001)",
+        "[x] bread (item_002)"
+      ]
+    }
+  ]
+}

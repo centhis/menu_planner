@@ -1,0 +1,190 @@
+{
+  "credentials_used": false,
+  "direct_db_writes": false,
+  "meaningful_changes_require_confirmation": true,
+  "ok": true,
+  "provider": "synthetic",
+  "scenarios": [
+    {
+      "name": "create_update_profile",
+      "ok": true,
+      "transcript": {
+        "ingress_allowed": true,
+        "normalized_dates": {
+          "today": "2026-07-12"
+        },
+        "preview": {
+          "kind": "preview",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Draft preview: Profile update\nProfile draft is ready for review.\nThis is draft state, not active state.\nconfirmation_id: profile_conf_001\nexpected_version: 2"
+        },
+        "state_changed": false
+      }
+    },
+    {
+      "name": "generate_menu_or_accepted_path",
+      "ok": true,
+      "transcript": {
+        "ingress_allowed": true,
+        "normalized_dates": {
+          "tomorrow": "2026-07-13"
+        },
+        "preview": {
+          "kind": "preview",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Draft preview: Menu for tomorrow\nAccepted menu path produced a draft preview.\nThis is draft state, not active state.\nconfirmation_id: menu_conf_001\nexpected_version: 3"
+        },
+        "state_changed": false
+      }
+    },
+    {
+      "name": "revision",
+      "ok": true,
+      "transcript": {
+        "parallel_policy": {
+          "kind": "policy_error",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Policy error\nconflicting_action_in_progress: Finish or cancel the current action first.\nNext actions:\n- finish current action\n- cancel"
+        },
+        "state_changed": false,
+        "validation_warnings": {
+          "kind": "validation_warnings",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Validation warnings\n- Dinner needs a cheaper replacement."
+        }
+      }
+    },
+    {
+      "name": "confirm",
+      "ok": true,
+      "transcript": {
+        "callback_data_bytes": 36,
+        "confirmation_result": {
+          "action": "confirm",
+          "allowed": true,
+          "confirmation_id": "menu_conf_001",
+          "expected_version": 3,
+          "rejection": null,
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "summary_hash": "hash_001"
+        },
+        "state_change_authorized_by_confirmation": true
+      }
+    },
+    {
+      "name": "recipe_view",
+      "ok": true,
+      "transcript": {
+        "presentation": {
+          "kind": "recipe_view",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Recipe: Tomato pasta\nPortions: 2\nIngredients:\n- pasta\n- tomatoes\nSteps:\n1. Boil pasta.\n2. Warm sauce."
+        },
+        "state_changed": false
+      }
+    },
+    {
+      "name": "shopping_checklist",
+      "ok": true,
+      "transcript": {
+        "callback_data_bytes": 36,
+        "checklist_result": {
+          "action": "done",
+          "allowed": true,
+          "disambiguation_candidates": [],
+          "rejection": null,
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "shopping_item_id": "shopping_list_001:item:001",
+          "target_status": "completed"
+        },
+        "direct_mutation": false,
+        "presentation": {
+          "kind": "shopping_checklist",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Shopping checklist\n[ ] Whole milk (shopping_list_001:item:001)"
+        }
+      }
+    },
+    {
+      "name": "cancel",
+      "ok": true,
+      "transcript": {
+        "cancel_result": {
+          "action": "cancel",
+          "allowed": true,
+          "rejection": null,
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "workflow_id": "workflow_001"
+        },
+        "presentation": {
+          "kind": "cancel",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Cancelled workflow workflow_001. No active state was changed.\nNext actions:\n- show status"
+        },
+        "state_changed": false
+      }
+    },
+    {
+      "name": "expired_confirmation",
+      "ok": true,
+      "transcript": {
+        "confirmation_result": {
+          "action": null,
+          "allowed": false,
+          "confirmation_id": null,
+          "expected_version": null,
+          "rejection": {
+            "code": "confirmation_expired",
+            "message": "Confirmation has expired.",
+            "retryable": false
+          },
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "summary_hash": null
+        },
+        "presentation": {
+          "kind": "expired_confirmation",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Confirmation expired\nThis preview can no longer be confirmed.\nconfirmation_id: expired_conf_001\nNext actions:\n- show status\n- create a new preview"
+        },
+        "state_changed": false
+      }
+    },
+    {
+      "name": "restart_recovery",
+      "ok": true,
+      "transcript": {
+        "memory_source_of_truth": false,
+        "presentation": {
+          "kind": "restart_recovery",
+          "parse_mode": "plain",
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "text": "Recovered active workflow\nWorkflow: menu_waiting_confirmation\npending_confirmation_id: menu_conf_001\nexpected_version: 3\nAllowed actions:\n- show_status\n- confirm_menu_draft\n- cancel_workflow\nNext actions:\n- resume confirmation\n- cancel"
+        },
+        "recovery_result": {
+          "allowed": true,
+          "allowed_actions": [
+            "show_status",
+            "confirm_menu_draft",
+            "cancel_workflow"
+          ],
+          "binding": "workflow_001",
+          "expected_version": 3,
+          "pending_confirmation_id": "menu_conf_001",
+          "rejection": null,
+          "schema_version": "m9.telegram_alpha_binding.v1",
+          "workflow_state": "menu_waiting_confirmation"
+        }
+      }
+    }
+  ],
+  "schema_version": "m9.telegram_alpha_e2e_transcript.v1",
+  "telegram_network_used": false
+}

@@ -21,6 +21,8 @@ Menu Planner M1 commands:
   m7-eval           Run the M7 shopping-list/mock-catalog golden eval
   m8-fake-integration
                     Run the M8 provider-free fake model integration check
+  m9-telegram-alpha-e2e
+                    Run the M9 provider-free synthetic Telegram Alpha E2E check
   check             Run local CI-equivalent checks available for M1
   clean             Remove generated Python bytecode caches
   clean-runtime     Stop services; volumes are intentionally retained
@@ -98,6 +100,9 @@ case "$cmd" in
         ;;
     m8-fake-integration)
         "$PYTHON" scripts/m8_fake_model_integration.py
+        ;;
+    m9-telegram-alpha-e2e)
+        "$PYTHON" scripts/m9_telegram_alpha_e2e.py
         ;;
     check)
         "$0" format-check

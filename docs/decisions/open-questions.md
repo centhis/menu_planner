@@ -510,3 +510,84 @@ Until resolved:
 - Do not mutate the Hermes image/container as a target solution.
 - Keep M8 work reproducible from host files, managed config and Application
   HTTP API boundaries.
+
+## OQ-010: Telegram Alpha identity, callbacks, recovery and E2E surface
+
+Status: partially resolved for Gate M9; live Telegram/runtime and production
+choices still open
+Date: 2026-07-12
+
+Question: Which exact Telegram Alpha runtime behavior should be used for the
+one-user M9 flow after installed Hermes Telegram capability is inspected?
+
+Known facts:
+
+- ADR-0012 accepts one authorized Telegram identity for M9 only.
+- Telegram transport authorization does not replace Application user identity,
+  workflow permissions, confirmations or Domain validation.
+- Real Telegram IDs, bot tokens, `.env`, `auth.json`, credentials and private
+  keys must not be committed, printed or copied into reports.
+- Callback data must carry stable references only, such as `confirmation_id`,
+  stable `shopping_item_id` or stable action id.
+- Full operation payloads, private details, secrets, raw prompt output, SQL,
+  shell, file paths, URLs and arbitrary commands are forbidden in callback
+  data.
+- ADR-0012 selects explicit conflict rejection for parallel state-changing
+  alpha messages. Queueing is deferred.
+- Restart recovery must read Application state, not Hermes memory.
+- Stage 0 evidence found Telegram callback-related classes and built-in Hermes
+  callback namespaces, but did not prove a Menu Planner callback round trip.
+- Stage 10 step 3 evidence is recorded in
+  `docs/experiments/m9-telegram-capability-discovery.md`.
+- The current Hermes image is `nousresearch/hermes-agent:v2026.6.19`, Hermes
+  `v0.17.0 (2026.6.19)`.
+- The installed Telegram adapter builds inbound message events with Telegram
+  `chat_id`, `chat_type`, `from_user.id`, display name, topic/thread id and
+  message id.
+- The installed Telegram adapter supports inline keyboard buttons and registers
+  a callback query handler.
+- Built-in callback namespaces include `sc:` slash confirmations and `cl:`
+  clarifications.
+- Installed source explicitly notes Telegram `callback_data` is capped at
+  64 bytes.
+- Callback authorization checks Telegram caller id before resolving built-in
+  approval, slash-confirm or clarify callbacks.
+
+Needed evidence/decisions during M9:
+
+Resolved for Gate M9:
+
+- The one allowed Telegram identity is treated as a configured allowlist value
+  and is reported only as configured/not configured.
+- Telegram transport identity is mapped to Application `user_id` and active
+  `WorkflowRun` through the Telegram Alpha binding layer.
+- M9 uses short stable callback references for synthetic confirmation and
+  checklist tests, with the installed 64-byte Telegram callback limit as the
+  project bound.
+- Live arbitrary project-owned Telegram callback dispatch remains unproven, so
+  Gate M9 uses a synthetic gateway E2E harness and records that deviation.
+- Restart recovery reloads `WorkflowRun` and pending confirmation through
+  Application-facing resolver contracts; memory is not source of truth.
+- User-facing wording exists for conflict rejection, expired confirmation,
+  validation/policy errors, cancel and restart recovery in the Telegram Alpha
+  presentation layer.
+
+Still needed before MVP hardening or production rollout:
+
+- Live Telegram button/message round trip with sanitized evidence of available
+  user, chat, message, thread and callback metadata.
+- Decision whether production should rely on Hermes built-in slash
+  confirmations, a project-owned callback adapter, or another approved bridge.
+- Final production source for the allowed user list and secret handling runbook.
+- Exact Application HTTP API used by the live Telegram adapter for workflow
+  recovery, pending confirmation lookup and commit.
+
+Until resolved:
+
+- Do not rely on arbitrary project-owned Telegram callback namespaces.
+- Do not put full payloads or private data in callback data.
+- Do not implement queueing for parallel state-changing alpha messages.
+- Do not commit from Telegram free text or callbacks without Application
+  confirmation/version/hash checks.
+- Do not expand M9 into public registration, multi-user production auth,
+  production hardening, real store integration or production model rollout.
