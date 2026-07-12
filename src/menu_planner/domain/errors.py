@@ -54,6 +54,15 @@ class ErrorCode(StrEnum):
     MENU_REPLACEMENT_NOT_LOCAL = "menu.replacement_not_local"
     RECIPE_SOURCE_MISMATCH = "recipe.source_mismatch"
     RECIPE_EQUIPMENT_UNAVAILABLE = "recipe.equipment_unavailable"
+    SHOPPING_UNKNOWN_UNIT = "shopping.unknown_unit"
+    SHOPPING_UNSUPPORTED_DIMENSION = "shopping.unsupported_dimension"
+    SHOPPING_PRODUCT_NOT_FOUND = "shopping.product_not_found"
+    SHOPPING_PRODUCT_MATCH_AMBIGUOUS = "shopping.product_match_ambiguous"
+    SHOPPING_PACKAGE_SHAPE_INVALID = "shopping.package_shape_invalid"
+    SHOPPING_PRICE_MISSING = "shopping.price_missing"
+    SHOPPING_ITEM_NOT_FOUND = "shopping.item_not_found"
+    SHOPPING_LIST_STALE = "shopping.list_stale"
+    SHOPPING_ITEM_MATCH_AMBIGUOUS = "shopping.item_match_ambiguous"
 
 
 @dataclass(frozen=True)
@@ -359,6 +368,84 @@ ERROR_CATALOG: dict[ErrorCode, ErrorCatalogEntry] = {
         developer_message="Recipe draft requires unavailable equipment.",
         machine_fields=("required_equipment", "available_equipment"),
         sources=("recipe_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_UNKNOWN_UNIT: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_UNKNOWN_UNIT,
+        developer_message="Shopping-list calculation received an unknown unit.",
+        machine_fields=("field", "unit", "supported_units"),
+        sources=("shopping_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_UNSUPPORTED_DIMENSION: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_UNSUPPORTED_DIMENSION,
+        developer_message=(
+            "Shopping-list calculation received an unsupported unit dimension."
+        ),
+        machine_fields=("field", "dimension", "supported_dimensions"),
+        sources=("shopping_validation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_PRODUCT_NOT_FOUND: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_PRODUCT_NOT_FOUND,
+        developer_message="No reviewed catalog product matches the ingredient.",
+        machine_fields=("ingredient_id", "snapshot_id", "snapshot_version"),
+        sources=("shopping_catalog_matching",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_PRODUCT_MATCH_AMBIGUOUS: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_PRODUCT_MATCH_AMBIGUOUS,
+        developer_message=(
+            "Multiple reviewed catalog products match the ingredient."
+        ),
+        machine_fields=(
+            "ingredient_id",
+            "snapshot_id",
+            "snapshot_version",
+            "candidate_product_ids",
+        ),
+        sources=("shopping_catalog_matching",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_PACKAGE_SHAPE_INVALID: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_PACKAGE_SHAPE_INVALID,
+        developer_message="Catalog package shape cannot satisfy ingredient quantity.",
+        machine_fields=("ingredient_id", "product_id", "reason"),
+        sources=("shopping_package_calculation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_PRICE_MISSING: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_PRICE_MISSING,
+        developer_message="Catalog product has no reviewed price for cost calculation.",
+        machine_fields=("product_id",),
+        sources=("shopping_package_calculation",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_ITEM_NOT_FOUND: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_ITEM_NOT_FOUND,
+        developer_message="Shopping list item was not found for exact update.",
+        machine_fields=("shopping_list_id", "shopping_item_id", "version"),
+        sources=("shopping_checklist_update",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_LIST_STALE: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_LIST_STALE,
+        developer_message="Shopping list version or source hash is stale.",
+        machine_fields=(
+            "shopping_list_id",
+            "expected_version",
+            "actual_version",
+            "expected_source_hash",
+            "actual_source_hash",
+        ),
+        sources=("shopping_checklist_update",),
+        user_exposure=UserExposure.ADAPTER_REQUIRED,
+    ),
+    ErrorCode.SHOPPING_ITEM_MATCH_AMBIGUOUS: ErrorCatalogEntry(
+        code=ErrorCode.SHOPPING_ITEM_MATCH_AMBIGUOUS,
+        developer_message="Checklist text matches multiple shopping list items.",
+        machine_fields=("query", "candidate_shopping_item_ids"),
+        sources=("shopping_checklist_update",),
         user_exposure=UserExposure.ADAPTER_REQUIRED,
     ),
 }
@@ -692,6 +779,54 @@ def audit_write_failure(
     )
 
 
+def shopping_item_not_found(
+    shopping_list_id: str,
+    shopping_item_id: str,
+    version: int,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_ITEM_NOT_FOUND,
+        path=("generated_items",),
+        details={
+            "shopping_list_id": shopping_list_id,
+            "shopping_item_id": shopping_item_id,
+            "version": version,
+        },
+    )
+
+
+def shopping_list_stale(
+    shopping_list_id: str,
+    expected_version: int,
+    actual_version: int,
+    expected_source_hash: str,
+    actual_source_hash: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_LIST_STALE,
+        details={
+            "shopping_list_id": shopping_list_id,
+            "expected_version": expected_version,
+            "actual_version": actual_version,
+            "expected_source_hash": expected_source_hash,
+            "actual_source_hash": actual_source_hash,
+        },
+    )
+
+
+def shopping_item_match_ambiguous(
+    query: str,
+    candidate_shopping_item_ids: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_ITEM_MATCH_AMBIGUOUS,
+        details={
+            "query": query,
+            "candidate_shopping_item_ids": ",".join(candidate_shopping_item_ids),
+        },
+    )
+
+
 def menu_period_incomplete(
     expected_start: str,
     expected_end: str,
@@ -845,4 +980,94 @@ def recipe_equipment_unavailable(
             "required_equipment": ",".join(required_equipment),
             "available_equipment": ",".join(available_equipment),
         },
+    )
+
+
+def shopping_unknown_unit(
+    field: str,
+    unit: str,
+    supported_units: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_UNKNOWN_UNIT,
+        path=(field,),
+        details={
+            "field": field,
+            "unit": unit,
+            "supported_units": ",".join(supported_units),
+        },
+    )
+
+
+def shopping_unsupported_dimension(
+    field: str,
+    dimension: str,
+    supported_dimensions: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_UNSUPPORTED_DIMENSION,
+        path=(field,),
+        details={
+            "field": field,
+            "dimension": dimension,
+            "supported_dimensions": ",".join(supported_dimensions),
+        },
+    )
+
+
+def shopping_product_not_found(
+    ingredient_id: str,
+    snapshot_id: str,
+    snapshot_version: int,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_PRODUCT_NOT_FOUND,
+        path=("ingredient_id",),
+        details={
+            "ingredient_id": ingredient_id,
+            "snapshot_id": snapshot_id,
+            "snapshot_version": snapshot_version,
+        },
+    )
+
+
+def shopping_product_match_ambiguous(
+    ingredient_id: str,
+    snapshot_id: str,
+    snapshot_version: int,
+    candidate_product_ids: list[str],
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_PRODUCT_MATCH_AMBIGUOUS,
+        path=("ingredient_id",),
+        details={
+            "ingredient_id": ingredient_id,
+            "snapshot_id": snapshot_id,
+            "snapshot_version": snapshot_version,
+            "candidate_product_ids": ",".join(candidate_product_ids),
+        },
+    )
+
+
+def shopping_package_shape_invalid(
+    ingredient_id: str,
+    product_id: str,
+    reason: str,
+) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_PACKAGE_SHAPE_INVALID,
+        path=("package_quantity",),
+        details={
+            "ingredient_id": ingredient_id,
+            "product_id": product_id,
+            "reason": reason,
+        },
+    )
+
+
+def shopping_price_missing(product_id: str) -> DomainError:
+    return _catalog_error(
+        code=ErrorCode.SHOPPING_PRICE_MISSING,
+        path=("price_minor_units",),
+        details={"product_id": product_id},
     )

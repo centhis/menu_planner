@@ -1,0 +1,7 @@
+{
+  "schema_version": "m2.v1",
+  "from_unit_id": "cup",
+  "to_unit_id": "ml",
+  "dimension": "volume",
+  "factor": 240
+}

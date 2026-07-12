@@ -15,6 +15,7 @@ from menu_planner.domain.contracts.models import (
     MealSlot,
     MenuDraft,
     MenuVersion,
+    NormalizedIngredient,
     OperationClass,
     OperationPreview,
     ParsedIntent,
@@ -27,8 +28,11 @@ from menu_planner.domain.contracts.models import (
     RecipeVersion,
     ShoppingList,
     ShoppingListItem,
+    ShoppingListVersion,
     ToolErrorEnvelope,
     ToolSuccessEnvelope,
+    UnitConversion,
+    UnitDefinition,
     ValidationResult,
     WorkflowRun,
     WorkflowState,
@@ -41,7 +45,23 @@ from menu_planner.domain.errors import (
     invalid_range,
     invalid_schema_version,
     missing_required_field,
+    shopping_unknown_unit,
+    shopping_unsupported_dimension,
 )
+
+SUPPORTED_UNIT_DIMENSIONS = frozenset({"mass", "volume", "count"})
+SUPPORTED_UNITS: dict[str, str] = {
+    "g": "mass",
+    "kg": "mass",
+    "ml": "volume",
+    "l": "volume",
+    "piece": "count",
+}
+CANONICAL_UNIT_BY_DIMENSION: dict[str, str] = {
+    "mass": "g",
+    "volume": "ml",
+    "count": "piece",
+}
 
 
 @dataclass(frozen=True)
@@ -662,6 +682,226 @@ def _validate_m6b_recipe_version(values: dict[str, object]) -> DomainError | Non
     return _validate_m6b_recipe_draft(draft_like_values)
 
 
+def _validate_supported_dimension(
+    dimension: object,
+    field_path: str,
+) -> DomainError | None:
+    if not isinstance(dimension, str):
+        return invalid_field_type(field_path, "string")
+    if dimension not in SUPPORTED_UNIT_DIMENSIONS:
+        return shopping_unsupported_dimension(
+            field_path,
+            dimension,
+            sorted(SUPPORTED_UNIT_DIMENSIONS),
+        )
+    return None
+
+
+def _validate_supported_unit(
+    unit: object,
+    field_path: str,
+) -> DomainError | None:
+    if not isinstance(unit, str):
+        return invalid_field_type(field_path, "string")
+    if unit not in SUPPORTED_UNITS:
+        return shopping_unknown_unit(field_path, unit, sorted(SUPPORTED_UNITS))
+    return None
+
+
+def _validate_m7_unit_definition(values: dict[str, object]) -> DomainError | None:
+    for field_name in ("unit_id", "display_name", "dimension", "canonical_unit_id"):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    unit_error = _validate_supported_unit(values["unit_id"], "unit_id")
+    if unit_error is not None:
+        return unit_error
+    dimension_error = _validate_supported_dimension(values["dimension"], "dimension")
+    if dimension_error is not None:
+        return dimension_error
+
+    dimension = cast(str, values["dimension"])
+    unit_id = cast(str, values["unit_id"])
+    if SUPPORTED_UNITS[unit_id] != dimension:
+        return shopping_unsupported_dimension(
+            "dimension",
+            dimension,
+            [SUPPORTED_UNITS[unit_id]],
+        )
+
+    expected_canonical = CANONICAL_UNIT_BY_DIMENSION[dimension]
+    if values["canonical_unit_id"] != expected_canonical:
+        return invalid_enum_value("canonical_unit_id", [expected_canonical])
+
+    factor = values["to_canonical_factor"]
+    if not _is_number(factor):
+        return invalid_field_type("to_canonical_factor", "number")
+    if factor <= 0:
+        return invalid_range("to_canonical_factor", 1, 2147483647, factor)
+    return None
+
+
+def _validate_m7_unit_conversion(values: dict[str, object]) -> DomainError | None:
+    for field_name in ("from_unit_id", "to_unit_id", "dimension"):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    for field_name in ("from_unit_id", "to_unit_id"):
+        unit_error = _validate_supported_unit(values[field_name], field_name)
+        if unit_error is not None:
+            return unit_error
+
+    dimension_error = _validate_supported_dimension(values["dimension"], "dimension")
+    if dimension_error is not None:
+        return dimension_error
+
+    dimension = cast(str, values["dimension"])
+    for field_name in ("from_unit_id", "to_unit_id"):
+        unit = cast(str, values[field_name])
+        if SUPPORTED_UNITS[unit] != dimension:
+            return shopping_unsupported_dimension(
+                "dimension",
+                dimension,
+                [SUPPORTED_UNITS[unit]],
+            )
+
+    factor = values["factor"]
+    if not _is_number(factor):
+        return invalid_field_type("factor", "number")
+    if factor <= 0:
+        return invalid_range("factor", 1, 2147483647, factor)
+    return None
+
+
+def _validate_m7_normalized_ingredient(
+    values: dict[str, object],
+) -> DomainError | None:
+    for field_name in ("ingredient_id", "display_name", "unit", "dimension"):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+
+    quantity = values["quantity"]
+    if not _is_number(quantity):
+        return invalid_field_type("quantity", "number")
+    if quantity <= 0:
+        return invalid_range("quantity", 1, 2147483647, quantity)
+
+    unit_error = _validate_supported_unit(values["unit"], "unit")
+    if unit_error is not None:
+        return unit_error
+    dimension_error = _validate_supported_dimension(values["dimension"], "dimension")
+    if dimension_error is not None:
+        return dimension_error
+
+    unit = cast(str, values["unit"])
+    dimension = cast(str, values["dimension"])
+    if SUPPORTED_UNITS[unit] != dimension:
+        return shopping_unsupported_dimension(
+            "dimension",
+            dimension,
+            [SUPPORTED_UNITS[unit]],
+        )
+    return None
+
+
+def _validate_m7_recipe_version_refs(value: object) -> DomainError | None:
+    if not _is_object_array(value):
+        return invalid_field_type("recipe_version_refs", "object_array")
+    if not value:
+        return invalid_range("recipe_version_refs", 1, 2147483647, 0)
+    for index, item in enumerate(value):
+        for field_name in ("recipe_id", "version"):
+            item_path = f"recipe_version_refs.{index}.{field_name}"
+            if field_name not in item:
+                return missing_required_field(item_path)
+        recipe_id_error = _validate_non_empty_string_field(
+            item["recipe_id"],
+            f"recipe_version_refs.{index}.recipe_id",
+        )
+        if recipe_id_error is not None:
+            return recipe_id_error
+        version_error = _validate_positive_integer_field(
+            item["version"],
+            f"recipe_version_refs.{index}.version",
+        )
+        if version_error is not None:
+            return version_error
+    return None
+
+
+def _validate_m7_generated_shopping_items(value: object) -> DomainError | None:
+    if not _is_object_array(value):
+        return invalid_field_type("generated_items", "object_array")
+    if not value:
+        return invalid_range("generated_items", 1, 2147483647, 0)
+    for index, item in enumerate(value):
+        for field_name in (
+            "shopping_item_id",
+            "ingredient_id",
+            "product_id",
+            "quantity",
+            "unit",
+            "package_count",
+        ):
+            item_path = f"generated_items.{index}.{field_name}"
+            if field_name not in item:
+                return missing_required_field(item_path)
+        for field_name in ("shopping_item_id", "ingredient_id", "product_id", "unit"):
+            error = _validate_non_empty_string_field(
+                item[field_name],
+                f"generated_items.{index}.{field_name}",
+            )
+            if error is not None:
+                return error
+        quantity = item["quantity"]
+        if not _is_number(quantity):
+            return invalid_field_type(f"generated_items.{index}.quantity", "number")
+        if quantity <= 0:
+            return invalid_range(
+                f"generated_items.{index}.quantity",
+                1,
+                2147483647,
+                quantity,
+            )
+        package_error = _validate_positive_integer_field(
+            item["package_count"],
+            f"generated_items.{index}.package_count",
+        )
+        if package_error is not None:
+            return package_error
+    return None
+
+
+def _validate_m7_shopping_list_version(
+    values: dict[str, object],
+) -> DomainError | None:
+    for field_name in ("user_id", "shopping_list_id", "source_menu_id"):
+        error = _validate_non_empty_string_field(values[field_name], field_name)
+        if error is not None:
+            return error
+    for field_name in (
+        "version",
+        "source_menu_version",
+        "catalog_snapshot_version",
+    ):
+        error = _validate_positive_integer_field(values[field_name], field_name)
+        if error is not None:
+            return error
+    catalog_error = _validate_non_empty_string_field(
+        values["catalog_snapshot_id"],
+        "catalog_snapshot_id",
+    )
+    if catalog_error is not None:
+        return catalog_error
+    refs_error = _validate_m7_recipe_version_refs(values["recipe_version_refs"])
+    if refs_error is not None:
+        return refs_error
+    return _validate_m7_generated_shopping_items(values["generated_items"])
+
+
 CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
     "parsed_intent": ContractValidator(
         "parsed_intent",
@@ -804,6 +1044,41 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
         ),
         _validate_m6b_recipe_version,
     ),
+    "unit_definition": ContractValidator(
+        "unit_definition",
+        UnitDefinition,
+        (
+            FieldRule("unit_id", "string"),
+            FieldRule("display_name", "string"),
+            FieldRule("dimension", "string"),
+            FieldRule("canonical_unit_id", "string"),
+            FieldRule("to_canonical_factor", "number"),
+        ),
+        _validate_m7_unit_definition,
+    ),
+    "unit_conversion": ContractValidator(
+        "unit_conversion",
+        UnitConversion,
+        (
+            FieldRule("from_unit_id", "string"),
+            FieldRule("to_unit_id", "string"),
+            FieldRule("dimension", "string"),
+            FieldRule("factor", "number"),
+        ),
+        _validate_m7_unit_conversion,
+    ),
+    "normalized_ingredient": ContractValidator(
+        "normalized_ingredient",
+        NormalizedIngredient,
+        (
+            FieldRule("ingredient_id", "string"),
+            FieldRule("display_name", "string"),
+            FieldRule("quantity", "number"),
+            FieldRule("unit", "string"),
+            FieldRule("dimension", "string"),
+        ),
+        _validate_m7_normalized_ingredient,
+    ),
     "shopping_list_item": ContractValidator(
         "shopping_list_item",
         ShoppingListItem,
@@ -822,6 +1097,23 @@ CONTRACT_VALIDATORS: dict[str, ContractValidator] = {
             FieldRule("shopping_list_id", "string"),
             FieldRule("items", "object_array"),
         ),
+    ),
+    "shopping_list_version": ContractValidator(
+        "shopping_list_version",
+        ShoppingListVersion,
+        (
+            FieldRule("user_id", "string"),
+            FieldRule("shopping_list_id", "string"),
+            FieldRule("version", "integer"),
+            FieldRule("source_menu_id", "string"),
+            FieldRule("source_menu_version", "integer"),
+            FieldRule("recipe_version_refs", "object_array"),
+            FieldRule("catalog_snapshot_id", "string"),
+            FieldRule("catalog_snapshot_version", "integer"),
+            FieldRule("generated_items", "object_array"),
+            FieldRule("calculation_metadata", "object"),
+        ),
+        _validate_m7_shopping_list_version,
     ),
     "workflow_run": ContractValidator(
         "workflow_run",

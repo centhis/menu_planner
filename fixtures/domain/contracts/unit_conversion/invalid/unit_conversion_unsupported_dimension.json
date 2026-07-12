@@ -1,0 +1,7 @@
+{
+  "schema_version": "m2.v1",
+  "from_unit_id": "g",
+  "to_unit_id": "kg",
+  "dimension": "weight",
+  "factor": 0.001
+}

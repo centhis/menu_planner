@@ -1,0 +1,8 @@
+{
+  "schema_version": "m2.v1",
+  "ingredient_id": "ingredient.tomato",
+  "display_name": "Tomato",
+  "quantity": 0,
+  "unit": "g",
+  "dimension": "mass"
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "m2.v1",
+  "unit_id": "g",
+  "display_name": "gram",
+  "dimension": "mass",
+  "canonical_unit_id": "g",
+  "to_canonical_factor": 1
+}

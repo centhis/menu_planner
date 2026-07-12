@@ -32,6 +32,20 @@ EXPECTED_INVALID_ERROR_CODES = {
     "step_unknown_ingredient.json": ErrorCode.INVALID_ENUM_VALUE,
     "bake_missing_temperature.json": ErrorCode.MISSING_REQUIRED_FIELD,
     "storage_missing_instructions.json": ErrorCode.MISSING_REQUIRED_FIELD,
+    "unit_definition_unknown_unit.json": ErrorCode.SHOPPING_UNKNOWN_UNIT,
+    "unit_definition_unsupported_dimension.json": (
+        ErrorCode.SHOPPING_UNSUPPORTED_DIMENSION
+    ),
+    "unit_conversion_unknown_unit.json": ErrorCode.SHOPPING_UNKNOWN_UNIT,
+    "unit_conversion_unsupported_dimension.json": (
+        ErrorCode.SHOPPING_UNSUPPORTED_DIMENSION
+    ),
+    "normalized_ingredient_unknown_unit.json": ErrorCode.SHOPPING_UNKNOWN_UNIT,
+    "normalized_ingredient_unsupported_dimension.json": (
+        ErrorCode.SHOPPING_UNSUPPORTED_DIMENSION
+    ),
+    "normalized_ingredient_quantity_zero.json": ErrorCode.INVALID_RANGE,
+    "shopping_list_version_source_menu_version_zero.json": ErrorCode.INVALID_RANGE,
 }
 
 EXPECTED_INVALID_ERROR_PATHS = {
@@ -57,6 +71,16 @@ EXPECTED_INVALID_ERROR_PATHS = {
     "step_unknown_ingredient.json": ("steps.0.ingredient_ids.0",),
     "bake_missing_temperature.json": ("steps.0.temperature_celsius",),
     "storage_missing_instructions.json": ("storage.instructions",),
+    "unit_definition_unknown_unit.json": ("unit_id",),
+    "unit_definition_unsupported_dimension.json": ("dimension",),
+    "unit_conversion_unknown_unit.json": ("from_unit_id",),
+    "unit_conversion_unsupported_dimension.json": ("dimension",),
+    "normalized_ingredient_unknown_unit.json": ("unit",),
+    "normalized_ingredient_unsupported_dimension.json": ("dimension",),
+    "normalized_ingredient_quantity_zero.json": ("quantity",),
+    "shopping_list_version_source_menu_version_zero.json": (
+        "source_menu_version",
+    ),
 }
 
 

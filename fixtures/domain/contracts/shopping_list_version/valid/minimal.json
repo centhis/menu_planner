@@ -1,0 +1,31 @@
+{
+  "schema_version": "m2.v1",
+  "user_id": "user_001",
+  "shopping_list_id": "shopping_list_001",
+  "version": 1,
+  "source_menu_id": "menu_001",
+  "source_menu_version": 1,
+  "recipe_version_refs": [
+    {
+      "recipe_id": "recipe_001",
+      "version": 1
+    }
+  ],
+  "catalog_snapshot_id": "mock_catalog_snapshot_001",
+  "catalog_snapshot_version": 1,
+  "generated_items": [
+    {
+      "shopping_item_id": "shopping_item_001",
+      "ingredient_id": "ingredient.tomato",
+      "product_id": "product.tomato.500g",
+      "quantity": 750,
+      "unit": "g",
+      "package_count": 2,
+      "total_price_minor_units": 598,
+      "currency": "USD"
+    }
+  ],
+  "calculation_metadata": {
+    "calculator": "m7.deterministic_shopping_list.v1"
+  }
+}

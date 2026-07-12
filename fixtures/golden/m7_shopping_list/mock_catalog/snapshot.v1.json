@@ -1,0 +1,40 @@
+{
+  "schema_version": "m2.v1",
+  "snapshot_id": "mock_catalog_snapshot_001",
+  "snapshot_version": 1,
+  "products": [
+    {
+      "product_id": "product.tomato.500g",
+      "display_name": "Mock tomatoes 500 g",
+      "normalized_ingredient_ids": ["ingredient.tomato"],
+      "package_quantity": 500,
+      "package_unit": "g",
+      "package_dimension": "mass",
+      "price_minor_units": 299,
+      "currency": "USD",
+      "category": "produce"
+    },
+    {
+      "product_id": "product.milk.1l",
+      "display_name": "Mock milk 1 l",
+      "normalized_ingredient_ids": ["ingredient.milk"],
+      "package_quantity": 1,
+      "package_unit": "l",
+      "package_dimension": "volume",
+      "price_minor_units": 189,
+      "currency": "USD",
+      "category": "dairy"
+    },
+    {
+      "product_id": "product.egg.12",
+      "display_name": "Mock eggs 12 ct",
+      "normalized_ingredient_ids": ["ingredient.egg"],
+      "package_quantity": 12,
+      "package_unit": "piece",
+      "package_dimension": "count",
+      "price_minor_units": 399,
+      "currency": "USD",
+      "category": "dairy"
+    }
+  ]
+}

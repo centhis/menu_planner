@@ -181,6 +181,35 @@ class RecipeVersion:
 
 
 @dataclass(frozen=True)
+class UnitDefinition:
+    schema_version: str
+    unit_id: str
+    display_name: str
+    dimension: str
+    canonical_unit_id: str
+    to_canonical_factor: float
+
+
+@dataclass(frozen=True)
+class UnitConversion:
+    schema_version: str
+    from_unit_id: str
+    to_unit_id: str
+    dimension: str
+    factor: float
+
+
+@dataclass(frozen=True)
+class NormalizedIngredient:
+    schema_version: str
+    ingredient_id: str
+    display_name: str
+    quantity: float
+    unit: str
+    dimension: str
+
+
+@dataclass(frozen=True)
 class ShoppingListItem:
     schema_version: str
     name: str
@@ -195,6 +224,21 @@ class ShoppingList:
     user_id: str
     shopping_list_id: str
     items: list[JsonObject]
+
+
+@dataclass(frozen=True)
+class ShoppingListVersion:
+    schema_version: str
+    user_id: str
+    shopping_list_id: str
+    version: int
+    source_menu_id: str
+    source_menu_version: int
+    recipe_version_refs: list[JsonObject]
+    catalog_snapshot_id: str
+    catalog_snapshot_version: int
+    generated_items: list[JsonObject]
+    calculation_metadata: JsonObject
 
 
 @dataclass(frozen=True)

@@ -371,3 +371,57 @@ Until resolved:
   aisle, or purchase arithmetic behavior in M6B.
 - Do not choose production model/provider or prompt policy from fake-generator
   implementation details.
+
+## OQ-008: Shopping taxonomy, catalog provider, prices, and checklist UX
+
+Status: open; ADR-0010 accepts only a technical M7 deterministic mock-catalog
+slice
+Date: 2026-07-11
+
+Question: Which product ingredient taxonomy, unit policy, catalog provider,
+price/availability behavior, pantry semantics, matching UX, and checklist UX
+should be selected after the M7 deterministic mock-catalog slice is measured?
+
+Known facts:
+
+- ADR-0010 uses confirmed menu versions, persisted recipe versions, reviewed
+  mock catalog snapshots, and explicit command parameters as sources.
+- ADR-0010 keeps shopping-list arithmetic code-owned and deterministic.
+- ADR-0010 rejects unknown units, unsupported dimensions, incompatible
+  conversions, and ambiguous product matches with controlled errors rather
+  than guesses.
+- ADR-0010 sets pantry and leftovers to zero by default for M7.
+- ADR-0010 allows package and cost calculation only from reviewed mock
+  snapshot data.
+- ADR-0010 excludes real store APIs, scrapers, live prices, live availability,
+  raw store HTML, Hermes/Telegram UX, and model-backed matching from M7.
+
+Needed decisions before production shopping workflows:
+
+- Final ingredient taxonomy and synonym policy.
+- Final unit system, canonical units, density conversion, and locale-specific
+  unit behavior.
+- Pantry, leftovers, owned-products, expiration, and user-confirmation
+  semantics.
+- Real catalog provider strategy: API, manually curated catalog, scraper, or
+  hybrid approach.
+- Live price, availability, discounts, taxes, delivery fees, and currency
+  policy.
+- Product matching UX for multiple candidate products.
+- Whether and when to add model-backed product matching.
+- Provider/model/version and prompt/schema versioning for any model-backed
+  catalog or matching experiment.
+- Raw-output retention and sanitization policy for catalog/matching artifacts.
+- Hermes/Telegram checklist UX, including exact item buttons,
+  disambiguation, undo, and multi-user race behavior.
+
+Until resolved:
+
+- Keep M7 shopping-list calculation deterministic, mock-catalog-only, and
+  runnable without Hermes, Telegram, external providers, network access, or
+  secrets.
+- Do not infer final ingredient/product semantics from M6B technical recipe
+  fixtures.
+- Do not fetch or parse live store pages.
+- Do not let a model perform arithmetic, package calculation, price math,
+  product matching, or checklist mutation.

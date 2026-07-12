@@ -1,0 +1,4 @@
+interface:
+  display_name: "M7 Shopping List"
+  short_description: "Deterministic shopping list and mock catalog."
+  default_prompt: "Use $m7-shopping-list-catalog to build the deterministic shopping list and mock catalog slice."
