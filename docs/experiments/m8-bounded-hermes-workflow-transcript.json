@@ -1,0 +1,165 @@
+{
+  "application_context": {
+    "allowed_tools": [
+      "menu_planner_get_workflow_status",
+      "menu_planner_generate_menu_draft"
+    ],
+    "confirmed_state": {
+      "confirmed_profile": {
+        "profile_id": "profile:user_001",
+        "version": 1
+      }
+    },
+    "correlation_id": "corr_001",
+    "memory_hint": "memory says workflow_state=profile_required",
+    "ok": true,
+    "source": "application_api",
+    "toolsets": {
+      "schema_version": "m8.toolsets.v1",
+      "toolsets": [
+        {
+          "name": "menu_planner_read_only",
+          "role": "user",
+          "tool_names": [
+            "menu_planner_get_workflow_status"
+          ],
+          "workflow_states": [
+            "initial",
+            "profile_required",
+            "profile_waiting_confirmation",
+            "ready",
+            "menu_planning",
+            "recipe_replacement",
+            "shopping_list",
+            "read_only"
+          ]
+        },
+        {
+          "name": "menu_planner_profile",
+          "role": "user",
+          "tool_names": [
+            "menu_planner_preview_profile",
+            "menu_planner_commit_profile"
+          ],
+          "workflow_states": [
+            "initial",
+            "profile_required",
+            "profile_waiting_confirmation"
+          ]
+        },
+        {
+          "name": "menu_planner_menu",
+          "role": "user",
+          "tool_names": [
+            "menu_planner_generate_menu_draft"
+          ],
+          "workflow_states": [
+            "ready",
+            "menu_planning"
+          ]
+        },
+        {
+          "name": "menu_planner_recipe",
+          "role": "user",
+          "tool_names": [
+            "menu_planner_generate_recipe_draft",
+            "menu_planner_preview_menu_slot_replacement"
+          ],
+          "workflow_states": [
+            "ready",
+            "recipe_replacement"
+          ]
+        },
+        {
+          "name": "menu_planner_shopping",
+          "role": "user",
+          "tool_names": [
+            "menu_planner_build_shopping_list",
+            "menu_planner_update_shopping_checklist_item"
+          ],
+          "workflow_states": [
+            "ready",
+            "shopping_list"
+          ]
+        },
+        {
+          "name": "menu_planner_admin_dev",
+          "role": "admin_dev",
+          "tool_names": [],
+          "workflow_states": []
+        }
+      ]
+    },
+    "user_id": "user_001",
+    "workflow_state": "menu_planning"
+  },
+  "credentials_used": false,
+  "direct_db_writes": false,
+  "ok": true,
+  "pre_message_policy": {
+    "action": "allow",
+    "allowed": true,
+    "reason": "",
+    "violations": []
+  },
+  "preview_explanation": {
+    "status": "preview",
+    "text": "Generated menu draft preview menu_draft_fake_001; no Telegram UX was used."
+  },
+  "provider": "fixture",
+  "result": {
+    "http_method": "POST",
+    "http_path": "/m8/menu/draft",
+    "mode": "guided",
+    "ok": true,
+    "result": {
+      "correlation_id": "corr_001",
+      "data": {
+        "entity_id": "menu:user_001",
+        "entity_version": 1,
+        "menu_draft": {
+          "draft_id": "menu_draft_fake_001",
+          "source": "m8_fake_model"
+        },
+        "next_allowed_actions": [
+          "menu_planner_get_workflow_status",
+          "menu_planner_generate_menu_draft"
+        ],
+        "warnings": []
+      },
+      "entity_id": "menu:user_001",
+      "entity_version": 1,
+      "operation_id": "idem_001",
+      "success": true
+    },
+    "tool_name": "menu_planner_generate_menu_draft"
+  },
+  "schema_version": "m8.fake_model_integration_result.v1",
+  "synthetic_user_message": {
+    "channel": "test",
+    "text": "Generate a menu draft for planning_context_001.",
+    "user_id": "user_001"
+  },
+  "telegram_used": false,
+  "workflow": {
+    "context_call_sequence": [
+      {
+        "method": "GET",
+        "path": "/m8/context/users/user_001"
+      }
+    ],
+    "http_path": "/m8/menu/draft",
+    "mode": "guided",
+    "restricted_toolset": [
+      "menu_planner_get_workflow_status",
+      "menu_planner_generate_menu_draft"
+    ],
+    "tool_call_sequence": [
+      {
+        "method": "POST",
+        "path": "/m8/menu/draft"
+      }
+    ],
+    "tool_name": "menu_planner_generate_menu_draft"
+  }
+}

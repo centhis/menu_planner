@@ -1,0 +1,18 @@
+{
+  "correlation_id": "corr_001",
+  "data": {
+    "next_allowed_actions": [
+      "preview_profile",
+      "get_workflow_status"
+    ],
+    "profile_preview": {
+      "preview_id": "preview_001",
+      "requires_confirmation": true
+    },
+    "warnings": []
+  },
+  "entity_id": "profile:user_001",
+  "entity_version": 1,
+  "operation_id": "op_001",
+  "success": true
+}

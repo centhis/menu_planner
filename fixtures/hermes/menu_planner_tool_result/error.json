@@ -1,0 +1,17 @@
+{
+  "correlation_id": "corr_001",
+  "errors": [
+    {
+      "code": "profile.validation_failed",
+      "field": "profile_fields.people_count",
+      "message": "people_count must be greater than zero"
+    }
+  ],
+  "next_allowed_actions": [
+    "preview_profile",
+    "get_workflow_status"
+  ],
+  "operation_id": "op_001",
+  "retryable": false,
+  "success": false
+}

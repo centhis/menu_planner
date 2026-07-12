@@ -1,0 +1,17 @@
+name: menu-planner
+version: 0.1.0
+description: "Menu Planner Hermes adapter plugin. Calls the Application HTTP API only."
+author: Menu Planner
+kind: standalone
+provides_tools:
+  - menu_planner_get_workflow_status
+  - menu_planner_preview_profile
+  - menu_planner_commit_profile
+  - menu_planner_generate_menu_draft
+  - menu_planner_generate_recipe_draft
+  - menu_planner_preview_menu_slot_replacement
+  - menu_planner_build_shopping_list
+  - menu_planner_update_shopping_checklist_item
+provides_hooks:
+  - pre_gateway_dispatch
+  - pre_tool_call

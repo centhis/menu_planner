@@ -425,3 +425,88 @@ Until resolved:
 - Do not fetch or parse live store pages.
 - Do not let a model perform arithmetic, package calculation, price math,
   product matching, or checklist mutation.
+
+## OQ-009: Hermes plugin runtime API, packaging, hooks, toolsets, and fake model testing
+
+Status: resolved for Gate M8; Telegram Alpha runtime wiring and production
+provider decisions remain pending
+Date: 2026-07-12
+
+Question: Which exact Hermes plugin API, host file layout, managed config
+shape, hook semantics, toolset visibility behavior, runtime skill packaging,
+and fake model/provider strategy should M8 use with the currently running
+ready-made Hermes image?
+
+Known facts:
+
+- Stage 0 recorded evidence for `nousresearch/hermes-agent:v2026.6.19` /
+  Hermes v0.17.0 in `docs/experiments/hermes-plugin-api.md`.
+- ADR-0001 and ADR-0003 require Hermes plugin/tools to remain adapter layer
+  and call the Application HTTP API.
+- ADR-0011 rejects custom Hermes images, mutable container installs,
+  `docker cp` installation, direct Domain Core imports, direct DB writes,
+  broad admin user toolsets, Telegram Alpha, real store integration and
+  production model rollout for M8.
+- Fresh local runtime evidence for step 3 is recorded in
+  `docs/experiments/m8-hermes-runtime-api-discovery.md`.
+- The current local ready-made image is
+  `nousresearch/hermes-agent:v2026.6.19`, Hermes v0.17.0.
+- Directory plugins require `plugin.yaml` plus `__init__.py` with
+  `register(ctx)`.
+- Observed plugin discovery paths include bundled plugins, user plugins under
+  `~/.hermes/plugins/<name>`, project plugins under `./.hermes/plugins/<name>`
+  gated by `HERMES_ENABLE_PROJECT_PLUGINS`, and `hermes_agent.plugins` Python
+  entrypoints.
+- `PluginContext.register_tool(...)` registers a tool name, toolset, schema,
+  handler, optional check function, env requirements, async flag,
+  description, emoji and override flag.
+- The current tool registry is `/opt/hermes/tools/registry.py`; handlers return
+  JSON strings, commonly through `tool_result(...)` and `tool_error(...)`.
+- `pre_gateway_dispatch` can `skip`, `rewrite` or `allow` user-originated
+  gateway messages before normal dispatch and gateway auth handling.
+- `pre_tool_call` can block with `{"action": "block", "message": "..."}`;
+  approval request hooks are observers and do not block.
+- Plugin-provided skills can be registered read-only and resolved explicitly as
+  `<plugin_name>:<skill_name>`.
+- The inspected model-provider docs describe provider profile plugins, but no
+  ready deterministic fake model provider was identified.
+- M8 plugin source is packaged under `plugins/menu-planner` with
+  `plugin.yaml` and `__init__.py`.
+- The target mount direction is a read-only user plugin under
+  `/opt/data/plugins/menu-planner`.
+- Versioned toolset config is recorded in
+  `fixtures/hermes/menu_planner_toolsets/toolsets.v1.json`.
+- The normal user toolsets expose only narrow `menu_planner_*` tools and
+  exclude terminal, filesystem, browser, SQL, secrets, model/provider
+  modification, skill/toolset/plugin modification and admin MCP surfaces.
+- Runtime skills are versioned under `plugins/menu-planner/skills`.
+- M8 uses a deterministic provider-free fake integration runner rather than a
+  production model/provider.
+- One bounded workflow without Telegram UX is recorded in
+  `docs/experiments/m8-bounded-hermes-workflow-transcript.json`.
+- The final Gate M8 report is recorded in
+  `docs/experiments/m8-hermes-plugin-integration.md`.
+
+Needed evidence/decisions before Telegram Alpha:
+
+- Exact Telegram Alpha scenario and allowed user journey.
+- Mapping from Telegram user/chat/session metadata to Application `user_id`.
+- Confirmation UX and callback/command strategy for Application-owned
+  `confirmation_id`.
+- Exact managed config entries needed to enable only the intended Menu Planner
+  plugin and user toolsets.
+- Whether the first Telegram Alpha should use guided-only mode.
+- Transcript/log retention and redaction policy for user-facing runtime
+  evidence.
+- Production model/provider selection, if any, remains separate from M8.
+
+Until resolved:
+
+- Do not proceed to Telegram Alpha without a separate user request and updated
+  runtime evidence.
+- Do not select a production model/provider.
+- Do not add Telegram Alpha, real store integration, scraper, live prices or
+  live availability.
+- Do not mutate the Hermes image/container as a target solution.
+- Keep M8 work reproducible from host files, managed config and Application
+  HTTP API boundaries.

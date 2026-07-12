@@ -19,6 +19,8 @@ Menu Planner M1 commands:
   m6a-eval          Run the M6A menu draft generation golden eval
   m6b-eval          Run the M6B recipe/replacement golden eval
   m7-eval           Run the M7 shopping-list/mock-catalog golden eval
+  m8-fake-integration
+                    Run the M8 provider-free fake model integration check
   check             Run local CI-equivalent checks available for M1
   clean             Remove generated Python bytecode caches
   clean-runtime     Stop services; volumes are intentionally retained
@@ -93,6 +95,9 @@ case "$cmd" in
     m7-eval)
         shift
         app_run python -m menu_planner.bootstrap.shopping_eval_cli "$@"
+        ;;
+    m8-fake-integration)
+        "$PYTHON" scripts/m8_fake_model_integration.py
         ;;
     check)
         "$0" format-check

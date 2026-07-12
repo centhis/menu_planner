@@ -1,0 +1,76 @@
+{
+  "schema_version": "m8.toolsets.v1",
+  "toolsets": [
+    {
+      "name": "menu_planner_read_only",
+      "role": "user",
+      "tool_names": [
+        "menu_planner_get_workflow_status"
+      ],
+      "workflow_states": [
+        "initial",
+        "profile_required",
+        "profile_waiting_confirmation",
+        "ready",
+        "menu_planning",
+        "recipe_replacement",
+        "shopping_list",
+        "read_only"
+      ]
+    },
+    {
+      "name": "menu_planner_profile",
+      "role": "user",
+      "tool_names": [
+        "menu_planner_preview_profile",
+        "menu_planner_commit_profile"
+      ],
+      "workflow_states": [
+        "initial",
+        "profile_required",
+        "profile_waiting_confirmation"
+      ]
+    },
+    {
+      "name": "menu_planner_menu",
+      "role": "user",
+      "tool_names": [
+        "menu_planner_generate_menu_draft"
+      ],
+      "workflow_states": [
+        "ready",
+        "menu_planning"
+      ]
+    },
+    {
+      "name": "menu_planner_recipe",
+      "role": "user",
+      "tool_names": [
+        "menu_planner_generate_recipe_draft",
+        "menu_planner_preview_menu_slot_replacement"
+      ],
+      "workflow_states": [
+        "ready",
+        "recipe_replacement"
+      ]
+    },
+    {
+      "name": "menu_planner_shopping",
+      "role": "user",
+      "tool_names": [
+        "menu_planner_build_shopping_list",
+        "menu_planner_update_shopping_checklist_item"
+      ],
+      "workflow_states": [
+        "ready",
+        "shopping_list"
+      ]
+    },
+    {
+      "name": "menu_planner_admin_dev",
+      "role": "admin_dev",
+      "tool_names": [],
+      "workflow_states": []
+    }
+  ]
+}

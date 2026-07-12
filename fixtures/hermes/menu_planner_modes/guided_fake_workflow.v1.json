@@ -1,0 +1,39 @@
+{
+  "application_context": {
+    "confirmed_profile": {
+      "profile_id": "profile:user_001",
+      "version": 1
+    },
+    "workflow_state": "menu_planning"
+  },
+  "context": {
+    "allowed_tools": [
+      "menu_planner_get_workflow_status",
+      "menu_planner_generate_menu_draft"
+    ],
+    "workflow_state": "menu_planning"
+  },
+  "fake_model_args": {
+    "correlation_id": "corr_001",
+    "idempotency_key": "idem_001",
+    "planning_context_id": "planning_context_001",
+    "user_id": "user_001"
+  },
+  "expected": {
+    "http_path": "/m8/menu/draft",
+    "mode": "guided",
+    "tool_call_sequence": [
+      {
+        "method": "POST",
+        "path": "/m8/menu/draft"
+      }
+    ],
+    "tool_name": "menu_planner_generate_menu_draft"
+  },
+  "synthetic_user_message": {
+    "channel": "test",
+    "text": "Generate a menu draft for planning_context_001.",
+    "user_id": "user_001"
+  },
+  "schema_version": "m8.guided_fake_workflow.v1"
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "M8 Hermes Plugin"
+  short_description: "Build narrow Hermes plugin integration."
+  default_prompt: "Use $m8-hermes-plugin-integration to build the narrow Hermes plugin integration slice."
