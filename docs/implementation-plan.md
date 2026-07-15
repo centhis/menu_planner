@@ -784,18 +784,166 @@ structured command
 - Что происходит при двух быстрых сообщениях?
 - Понимает ли пользователь, что является draft, а что active?
 
+## Этап 11.5. Live Telegram Alpha + Interactive UX/UI Design
+
+### Цель
+
+Доказать реальный Telegram round-trip и согласовать первую usable версию UI/UX
+бота прямо в Telegram, а не продолжать только synthetic E2E.
+
+Эта веха является reality gate между Telegram Alpha и MVP hardening.
+
+Не реализовывать новые продуктовые фичи. Не переходить к production auth,
+MVP hardening, observability, backup/restore, real store integration, live
+prices/availability или production model rollout.
+
+### Задачи
+
+1. Поднять minimal live Telegram UX sandbox для одного authorized Telegram ID.
+2. Проверить, что пользователь видит бота в Telegram и может открыть UX
+   sandbox.
+3. Показать реальные alpha screens/states в Telegram.
+4. Разрешить synthetic/demo data только если production backend flow ещё не
+   готов, и явно помечать такие данные как demo, not active state.
+5. Сделать inline buttons visible and clickable.
+6. Обрабатывать callbacks реально через live Telegram path.
+7. Провести UX/UI co-design loop для крупных экранов:
+   - показать текущий экран в Telegram;
+   - кратко объяснить UX-логику;
+   - предложить 1-3 улучшения;
+   - спросить пользователя, что изменить;
+   - внести правки или явно отложить;
+   - снова показать обновленный экран.
+8. Создать кликабельные Telegram prototypes для:
+   - start / home;
+   - current status;
+   - profile draft;
+   - profile preview;
+   - menu draft;
+   - menu preview;
+   - validation warnings;
+   - confirmation screen;
+   - recipe view;
+   - shopping checklist;
+   - item disambiguation;
+   - cancel flow;
+   - expired/stale confirmation;
+   - error state;
+   - restart/recovery state.
+9. Во время корректировок давать короткие UX-советы:
+   - где лучше свободный текст;
+   - где лучше inline buttons;
+   - какие действия должны быть только кнопками;
+   - где нужен preview;
+   - где нужен confirmation;
+   - где нужен disambiguation;
+   - где текст слишком длинный для Telegram;
+   - где лучше разбить экран на несколько сообщений;
+   - где Mini App может быть полезнее;
+   - где Mini App пока преждевременен и усложнит Alpha.
+10. Зафиксировать Telegram UI principles:
+   - каждое state-changing действие проходит через preview/confirmation;
+   - draft и active state визуально различимы;
+   - кнопка подтверждения всегда связана с `confirmation_id`;
+   - callback data не содержит full payload;
+   - destructive/cancel actions требуют явной кнопки;
+   - shopping checklist updates используют stable item id;
+   - неоднозначные текстовые команды ведут к disambiguation screen;
+   - длинные preview/diff не превращаются в простыню текста.
+11. Провести Mini App decision checkpoint:
+   - какие части UX неудобны в chat-only interface;
+   - какие экраны могут выиграть от Telegram Mini App;
+   - что можно оставить в inline buttons;
+   - нужен ли Mini App в Alpha или его стоит отложить;
+   - какие риски Mini App добавит: auth, state sync, callbacks, hosting,
+     testing.
+12. Добавить user review checklists for manual Telegram verification:
+   - first launch checklist;
+   - profile setup checklist;
+   - menu preview checklist;
+   - confirmation checklist;
+   - recipe view checklist;
+   - shopping checklist checklist;
+   - disambiguation checklist;
+   - repeated click checklist;
+   - cancel/error checklist;
+   - restart/recovery checklist;
+   - "понятно ли, что draft, а что active" checklist.
+13. Создать sanitized report:
+   `docs/experiments/m9-live-telegram-ux-sandbox.md`.
+
+### Gate M9.5
+
+Status: completed for first-version UX/UI planning on 2026-07-13.
+
+Stage 10.5 нельзя считать закрытой, пока:
+
+- пользователь видит бота в Telegram;
+- пользователь может открыть UX sandbox;
+- пользователь может нажимать live inline buttons;
+- live callback доходит до sandbox and produces visible response;
+- пользователь увидел все ключевые состояния хотя бы на demo/synthetic data;
+- demo/synthetic data clearly marked as demo and not active state;
+- пользователь дал feedback по первой версии UX/UI;
+- feedback внесен или явно отложен;
+- есть sanitized report со скриншотами или описанием показанных состояний;
+- есть список принятых UX-решений и открытых вопросов;
+- callback data uses stable ids and no full payload;
+- repeated callback не ломает состояние;
+- секреты не попали в logs, reports or diffs.
+
+Accepted result:
+
+- first-version Telegram UX/UI is a narrow Menu Planner bot, not a generic
+  prompt box;
+- primary path is `Составить меню` -> `Меню составлено` -> state-aware
+  `Главная`;
+- active home shows current meal/recipe context, remaining shopping items and
+  actions `Покупки`, `Рецепт`, `Изменить меню`, `Настройки`;
+- `Изменить меню` and food settings are text-first, but text is treated only
+  as user data and must lead to preview before commit;
+- store price sources are managed/selectable sources, not free-form store text;
+- button-only screens block free text inside the Menu Planner adapter and do
+  not forward it to the generic Hermes agent;
+- normal menus do not include a global `Закрыть` button.
+
+Safety carry-forward to the next stage:
+
+- add prompt-injection tests for text-first settings and menu editing;
+- reject system/developer/tool/secret-seeking instructions in user text;
+- parse only narrow settings/menu-change intent schemas;
+- validate parsed intents with Application policy before preview;
+- require explicit preview/confirmation plus version/hash and permission
+  checks before any commit;
+- keep callback data stable-id based and free of full payloads, private data
+  and secrets.
+
+### Рефлексия
+
+- Какие экраны реально понятны в Telegram chat UI?
+- Где Telegram chat превращается в перегруженный интерфейс?
+- Какие действия пользователь ожидает видеть кнопками?
+- Какие состояния требуют Mini App позже?
+- Что должно быть изменено до MVP hardening?
+
 ## Этап 12. Безопасность, наблюдаемость и отказоустойчивость
 
 ### Задачи безопасности
 
 1. Проверить минимальный toolset в runtime-конфигурации.
 2. Запретить terminal, filesystem, произвольный browser, SQL, secrets и admin MCP.
-3. Добавить тесты прямого prompt injection.
+3. Добавить тесты прямого prompt injection, включая Stage 10.5 text-first
+   screens: `Изменить меню` and food settings.
 4. Добавить fixtures косвенного injection из store data.
 5. Добавить ownership tests на все read/write операции.
 6. Добавить secret scanning и dependency scanning.
 7. Ограничить и валидировать все внешние payloads.
 8. Настроить timeouts и bounded retries.
+9. Проверить, что text on button-only Telegram screens is blocked inside the
+   Menu Planner adapter and does not fall through to the generic Hermes agent.
+10. Проверить, что text-first screens parse only narrow intent schemas and
+    cannot commit without preview, confirmation, version/hash and permission
+    checks.
 
 ### Наблюдаемость
 

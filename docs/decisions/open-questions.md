@@ -552,6 +552,84 @@ Known facts:
   64 bytes.
 - Callback authorization checks Telegram caller id before resolving built-in
   approval, slash-confirm or clarify callbacks.
+- Stage 10.5 direct Bot API sidecar sent a live Home screen, but did not
+  receive the user's inline button callback. This path is rejected as the target
+  callback path because Hermes Gateway owns Telegram update polling and because
+  arbitrary `ux:*` callbacks are not routed by the installed Telegram adapter.
+- Stage 10.5 accepts Hermes-native `clarify` as the next sandbox callback path:
+  `cl:<clarify_id>:<choice_index>` is supported by the installed adapter,
+  carries only a stable clarify id and numeric choice index, and can visibly
+  edit the Telegram message after a click.
+- Stage 10.5 live Hermes-native `clarify` callback smoke was confirmed by the
+  user: Home was shown, `Status` was clicked, Status was shown, and the flow
+  returned to Home through the single-choice clarify step.
+- Stage 10.5 user feedback rejected visible numeric clarify buttons as awkward.
+  The live UX sandbox now preserves `cl:<clarify_id>:<choice_index>` callback
+  data but renders Russian action labels on the Telegram buttons.
+- A later live regression showed numeric buttons again after a Telegram timeout
+  triggered Hermes `send_clarify()` fallback. Stage 10.5 now disables numeric
+  fallback for the UX sandbox and fails closed instead of showing
+  `1/2/3/Other` buttons.
+- A subsequent live issue made buttons appear non-responsive after Telegram
+  send timeouts. Stage 10.5 now registers `cl:*` callback state before sending
+  a labeled clarify message, retries transient send failures and keeps state
+  after timeout exhaustion because delivery is uncertain.
+- Stage 10.5 user feedback also rejected the engineering-first UX with visible
+  statuses, drafts, unnecessary cancel confirmations and internal confirmation
+  language. The current sandbox direction is a lightweight menu-planning flow:
+  generate menu first, return to a state-aware home screen, open shopping from
+  active home, edit the menu from active home, keep settings secondary, and
+  hide internal ids from normal UI copy.
+- Stage 10.5 user feedback found an illogical choice-tree edge:
+  settings contained `Составить меню`. The settings branch is now constrained
+  to text-edit guidance or back navigation; tests assert that settings cannot
+  target menu generation directly.
+- Stage 10.5 accepted a state-aware home direction: if no menu exists, home
+  offers `Составить меню`; if a menu exists, home shows remaining unchecked
+  shopping items, the current meal recipe, and offers `Изменить меню`. Current
+  sandbox may use demo session state; production needs Application read APIs
+  for active menu, current meal slot and unchecked shopping items.
+- Stage 10.5 user feedback rejected the generated-menu action row with generic
+  confirmation/replacement/purchases actions. The sandbox now routes menu
+  preview back to active home; purchases are shown on active home only after a
+  menu exists.
+- Stage 10.5 user feedback then selected text-first menu editing. The sandbox
+  no longer asks the user to choose a dish button first; `Изменить меню`
+  accepts a natural-language change and routes to a preview example without
+  saving.
+- Stage 10.5 user feedback then narrowed the bot scope: the sandbox removes the
+  global `Закрыть` inline button from menus, blocks unexpected text on
+  button-only screens inside the Menu Planner adapter, and prevents that text
+  from falling through to the generic Hermes agent.
+- Stage 10.5 first-version UX/UI planning is complete as of 2026-07-13. The
+  accepted direction is a narrow Telegram Menu Planner bot with lightweight
+  menu planning, state-aware home, text-first menu editing, managed price
+  sources and no generic prompt-box behavior.
+- Text-first settings are a UX direction only. Production implementation must
+  treat the text as untrusted input, parse it into a narrow
+  settings/change-intent schema, and run validation, preview and explicit
+  accept before persistence. Prompt-injection evals are required before this is
+  enabled for real Application writes.
+- Text-first menu editing has the same safety requirement as text-first
+  settings: user text is data, not instructions. Production must reject
+  system/developer/tool/secret-seeking instructions, parse only narrow
+  menu-change intents, validate against Application policy, show preview, and
+  commit only after explicit confirmation.
+- Stage 10.5 sandbox behavior for settings text: free text entered while the
+  active screen is settings/settings-edit is intercepted by the UX sandbox,
+  shown as a bounded demo preview, and routed back to settings. It must not
+  fall through to the generic Hermes agent.
+- Stage 10.5 user feedback requested deeper store UX. The accepted sandbox
+  direction is that stores are not typed as free-form settings. They are shown
+  as managed price sources backed by separate Hermes skills, with schedule and
+  manual refresh visible in Telegram. Sources are not all enabled by default:
+  the user selects needed stores, refresh runs only selected sources, and 2+
+  selected sources produce shopping lists grouped by store. Stage 10.5 still
+  does not fetch pages, prices or availability.
+- After a soft Hermes container restart during Stage 10.5, the Gateway still
+  logged intermittent Telegram polling/network reconnect warnings. These did
+  not prevent the confirmed `cl:*` sandbox callback smoke, but may need a
+  separate hardening investigation later.
 
 Needed evidence/decisions during M9:
 
@@ -574,10 +652,20 @@ Resolved for Gate M9:
 
 Still needed before MVP hardening or production rollout:
 
-- Live Telegram button/message round trip with sanitized evidence of available
-  user, chat, message, thread and callback metadata.
 - Decision whether production should rely on Hermes built-in slash
-  confirmations, a project-owned callback adapter, or another approved bridge.
+  confirmations/clarifications, a project-owned callback adapter, or another
+  approved bridge.
+- Whether intermittent Hermes Telegram polling/network warnings need a separate
+  hardening task after Stage 10.5.
+- Carry Stage 10.5 safety settings into the next stage: block text on
+  button-only screens, treat allowed text as untrusted user data, reject
+  prompt-injection/secret-seeking instructions, parse only narrow intent
+  schemas, validate with Application policy, show preview and require explicit
+  confirmation before commit.
+- Exact production store list, default source-selection policy, geography,
+  source ownership, Hermes skill packaging, schedule policy, manual refresh
+  semantics, per-source shopping grouping, fallback rules, failure UX and
+  legal/operational constraints.
 - Final production source for the allowed user list and secret handling runbook.
 - Exact Application HTTP API used by the live Telegram adapter for workflow
   recovery, pending confirmation lookup and commit.

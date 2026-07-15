@@ -1,0 +1,7 @@
+name: menu-planner-ux-sandbox
+version: 0.1.0
+description: "Stage 10.5 live Telegram UX sandbox adapter. Drives demo screens through Hermes clarify callbacks only."
+author: Menu Planner
+kind: standalone
+provides_hooks:
+  - pre_gateway_dispatch

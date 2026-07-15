@@ -1,0 +1,4 @@
+interface:
+  display_name: "M9.5 Live UX"
+  short_description: "Build the live Telegram UX sandbox."
+  default_prompt: "Use $m9-live-telegram-ux-sandbox to build the live Telegram UX sandbox."

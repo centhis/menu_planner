@@ -15,6 +15,8 @@ services:
     volumes:
       - hermes-data:/opt/data
       - ./scripts/hermes-codex-start.sh:/opt/menu-planner/hermes-codex-start.sh:ro
+      - ./scripts/m10_5_live_telegram_ux_sandbox.py:/opt/menu-planner/m10_5_live_telegram_ux_sandbox.py:ro
+      - ./plugins/menu-planner-ux-sandbox:/opt/data/plugins/menu-planner-ux-sandbox:ro
       - ./config/hermes-managed-config.yaml:/etc/hermes/config.yaml:ro
     environment:
       - HERMES_USE_CODEX_AUTH=${HERMES_USE_CODEX_AUTH:-0}
